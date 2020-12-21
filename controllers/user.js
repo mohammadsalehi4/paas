@@ -4,7 +4,7 @@ const User = require('../model/user')
 const bcrypt=require('bcryptjs')
 const Sites = require('../model/site')
 const jwt=require('jsonwebtoken')
-const user = require('../model/user')
+const site = require('../model/site')
 
 module.exports.postSignUp=(req,res)=>{
     const fullname=req.body.fullname
@@ -82,12 +82,10 @@ module.exports.postSignUpForSites=(req,res)=>{
                     Address:Address,
                     HashingPassWord:hash,
                     Email:Email,
-                    entry_code:{
-                        code:0,
-                        expired:false
-                    },
+                    recoverycode:'0',
                     is_ban:false,
-                    Wrong_login_Number:0,
+                    Uns_attempt:0,
+                    enable_to_change_password:false,
                     ExpireDate:{
                         year:1399,
                         month:12,
@@ -411,4 +409,248 @@ module.exports.confirm=(req,res)=>{
             return res.status(404).json({msg:'wrong username'})
         })
         .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+}
+
+module.exports.sendrecoveryemail=(req,res)=>{
+    const Email=req.body.Email
+    
+    User.findOne({Email:Email})
+        .then(user=>{
+            let code
+            const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
+            const rnd1=Math.floor(Math.random()*26)
+            code=letters[rnd1]
+            for(let i=0;i<40;i++){
+                const rnd=Math.floor(Math.random()*letters.length)
+                code=code+letters[rnd]
+            }
+            const link=`localhost:4000/recovery/${Email}/${code}`
+            bcrypt.hash(code,12,(err,hash)=>{
+                if(err){
+                    return res.status(403).json({msg:'Unsuccessful'})
+                }else{
+                    user.recoverycode=hash
+                    user.save()
+                        .then(result=>{
+                            return res.status(200).json({
+                                msg:'Email sent',
+                                link:link
+                            })
+                        })
+                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                }
+            })
+            return true
+        })
+        .catch(err=>{return res.status(403).json({msg:'wrong Email'})})
+}
+
+module.exports.recovery=(req,res)=>{
+    const Email=req.params.Email
+    const code=req.params.code
+    
+    User.findOne({Email:Email})
+        .then(user=>{
+            if(user.recoverycode==0){
+                return res.status(403).json({msg:'Unsuccessful'})
+            }
+            bcrypt.compare(code,user.recoverycode,(err,result)=>{
+                if(err){
+                    return res.status(403).json({msg:'Unsuccessful'})
+                }else if(result){
+                    user.enable_to_change_password=true
+                    user.save()
+                        .then(rs=>{
+                            const token = jwt.sign({
+                                Email:Email,
+                                message:'enable to change password',
+                                code:code
+                            },'secret',{expiresIn:'1h'})
+                            return res.status(200).json({
+                                msg:'enable to change password',
+                                token:token
+                            })
+                        })
+                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                }else{
+                    return res.status(403).json({msg:'Unsuccessful'})
+                }
+            })
+        })
+        .catch(err=>{return res.status(403).json({msg:'wrong Email'})})
+}
+
+module.exports.changepassword=(req,res)=>{
+    const token=(req.headers.authorization.slice(7))
+    const decoded =jwt.verify(token,'secret')
+    const message=decoded.message
+    const Email=decoded.Email
+    const code=decoded.code
+    let newPassword=req.body.newPassword
+    
+    if(message!='enable to change password'){
+        return res.status(403).json({msg:'Unsuccessful1'})
+    }
+    
+    newPassword=String(newPassword)
+    if(newPassword.length<8){
+        return res.status(403).json({msg:'select longer password'})
+    }
+    
+    User.findOne({Email:Email})
+        .then(user=>{
+            bcrypt.compare(code,user.recoverycode,(err,result)=>{
+                if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                    else if(result){
+                    if(user.enable_to_change_password==true){
+                        bcrypt.hash(newPassword,12,(err,hash)=>{
+                            if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                            else{
+                                user.HashingPassword=hash
+                                user.is_ban=false
+                                user.enable_to_change_password=false
+                                user.recoverycode=0
+                                user.Uns_attempt=0
+                                user.save()
+                                    .then(rs=>{
+                                        return res.status(200).json({msg:'Done'})
+                                    })
+                                    .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                            }
+                        })
+                    }else{return res.status(403).json({msg:'Unsuccessful'})}
+                }else{return res.status(403).json({msg:'Unsuccessful'})}
+            })
+        })
+        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+}
+
+module.exports.sendrecoveryemailforsites=(req,res)=>{
+    const Address=req.body.Address
+    
+    Sites.findOne({Address:Address})
+        .then(site=>{
+            let code
+            const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
+            const rnd1=Math.floor(Math.random()*26)
+            code=letters[rnd1]
+            for(let i=0;i<40;i++){
+                const rnd=Math.floor(Math.random()*letters.length)
+                code=code+letters[rnd]
+            }
+            const link=`localhost:4000/recoverysite/${Address}/${code}`
+            bcrypt.hash(code,12,(err,hash)=>{
+                if(err){
+                    return res.status(403).json({msg:'Unsuccessful1'})
+                }else{
+                    site.recoverycode=hash
+                    site.save()
+                    return res.status(200).json({
+                        msg:'Email sent',
+                        link:link
+                    })
+                }
+            })
+            return true
+        })
+        .catch(err=>{return res.status(403).json({msg:'wrong Address'})})
+}
+
+module.exports.recoverysite=(req,res)=>{
+    const Address=req.params.Address
+    const code=req.params.code
+    
+    Sites.findOne({Address:Address})
+        .then(site=>{
+            if(site.recoverycode==0){
+                return res.status(403).json({msg:'Unsuccessful'})
+            }
+            bcrypt.compare(code,site.recoverycode,(err,result)=>{
+                if(err){
+                    return res.status(403).json({msg:'Unsuccessful'})
+                }else if(result){
+                    site.enable_to_change_password=true
+                    site.save()
+                        .then(rs=>{
+                            const token = jwt.sign({
+                                Address:Address,
+                                message:'enable to change password',
+                                code:code
+                            },'secret',{expiresIn:'1h'})
+                            return res.status(200).json({
+                                msg:'enable to change password',
+                                token:token
+                            })
+                        })
+                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                }else{
+                    return res.status(403).json({msg:'Unsuccessful'})
+                }
+            })
+        })
+        .catch(err=>{return res.status(403).json({msg:'wrong Address'})})
+}
+
+module.exports.changepasswordforsite=(req,res)=>{
+    const token=(req.headers.authorization.slice(7))
+    const decoded =jwt.verify(token,'secret')
+    const message=decoded.message
+    const Address=decoded.Address
+    const code=decoded.code
+    let newPassword=req.body.newPassword
+    
+    if(message!='enable to change password'){
+        return res.status(403).json({msg:'Unsuccessful'})
+    }
+    
+    newPassword=String(newPassword)
+    if(newPassword.length<16){
+        return res.status(403).json({msg:'select longer password'})
+    }
+    
+    Sites.findOne({Address:Address})
+        .then(site=>{
+            bcrypt.compare(code,site.recoverycode,(err,result)=>{
+                if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                    else if(result){
+                    if(site.enable_to_change_password==true){
+                        bcrypt.hash(newPassword,12,(err,hash)=>{
+                            if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                            else{
+                                site.HashingPassword=hash
+                                site.is_ban=false
+                                site.enable_to_change_password=false
+                                site.recoverycode=0
+                                site.Uns_attempt=0
+                                site.save()
+                                    .then(rs=>{
+                                        return res.status(200).json({msg:'Done'})
+                                    })
+                                    .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                            }
+                        })
+                    }else{return res.status(403).json({msg:'Unsuccessful'})}
+                }else{return res.status(403).json({msg:'Unsuccessful'})}
+            })
+        })
+        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+}
+
+module.exports.extention=(req,res)=>{
+    const token=(req.headers.authorization.slice(7))
+    const decoded =jwt.verify(token,'secret')
+    const Address=decoded.Address
+    
+    Sites.findOne({Address:Address})
+        .then(site=>{
+            const saveExt=function(){
+                
+            }
+            
+            const pay=function(){
+                saveExt()
+            }
+            
+            pay()
+        })
 }

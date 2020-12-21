@@ -22,9 +22,17 @@ const userSchema=new Schema({
         required:true,
         type:Boolean
     },
+    enable_to_change_password:{
+        required:true,
+        type:Boolean
+    },
     is_google_register:{
         required:true,
         type:Boolean
+    },
+    recoverycode:{
+        required:true,
+        type:String
     },
     sites:[{
         SiteAddress:{

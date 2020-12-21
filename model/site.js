@@ -14,21 +14,19 @@ const siteSchema=new Schema({
         required:true,
         type:String
     },
-    entry_code:{
-        code:{
-            required:true,
-            type:Number
-        },
-        expired:{
-            required:true,
-            type:Boolean
-        },
+    enable_to_change_password:{
+        required:true,
+        type:Boolean
+    },
+    recoverycode:{
+        required:true,
+        type:String
     },
     is_ban:{
         required:true,
         type:Boolean
     },
-    Wrong_login_Number:{
+    Uns_attempt:{
         required:true,
         type:Number
     },
