@@ -125,18 +125,40 @@ module.exports.postLogin=(req,res)=>{
     
     User.findOne({Email:Email})
         .then(user=>{
+            if(user.is_ban==true){return res.status(403).json({msg:'ban'})}
             bcrypt.compare(password,user.HashingPassword,(err,result)=>{
-                if(err){return res.status(401).json({msg:'Auth Failed!'})}
+                if(err){
+                    let UA=user.Uns_attempt
+                    UA=Number(UA)
+                    UA++
+                    user.Uns_attempt=UA
+                    if(UA==3){user.is_ban=true}
+                    user.save()
+                    return res.status(401).json({msg:'Auth Failed!'})
+                }
                 else if(result){
                     const token = jwt.sign({
                         Email:user.Email,
                         fullName:user.fullName
                     },'secret',{expiresIn:'1h'})
-                    return res.status(200).json({
-                        msg:'login_Successful!',
-                        token:token
-                    })
-                }else{return res.status(401).json({msg:'Auth Failed!'})}
+                    user.Uns_attempt=0
+                    user.save()
+                        .then(result=>{
+                            return res.status(200).json({
+                                msg:'login_Successful!',
+                                token:token
+                            })
+                        })
+                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                }else{                    
+                    let UA=user.Uns_attempt
+                    UA=Number(UA)
+                    UA++
+                    user.Uns_attempt=UA
+                    if(UA==3){user.is_ban=true}
+                    user.save()
+                    return res.status(401).json({msg:'Auth Failed!'})
+                }
             })
         })
         .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
@@ -148,18 +170,40 @@ module.exports.loginForSites=(req,res)=>{
     
     Sites.findOne({Address:Address})
         .then(user=>{
+            if(user.is_ban==true){return res.status(403).json({msg:'ban'})}
             bcrypt.compare(password,user.HashingPassWord,(err,result)=>{
-                if(err){return res.status(401).json({msg:'Auth Failed!'})}
+                if(err){
+                    let UA=user.Uns_attempt
+                    UA=Number(UA)
+                    UA++
+                    user.Uns_attempt=UA
+                    if(UA==3){user.is_ban=true}
+                    user.save()
+                    return res.status(401).json({msg:'Auth Failed!'})
+                }
                 else if(result){
                     const token = jwt.sign({
                         Address:user.Address,
                         Email:user.Email,
                     },'secret',{expiresIn:'1y'})
-                    return res.status(200).json({
-                        msg:'login_Successful!',
-                        token:token
-                    })
-                }else{return res.status(401).json({msg:'Auth Failed!'})}
+                    user.Uns_attempt=0
+                    user.save()
+                        .then(result=>{
+                            return res.status(200).json({
+                                msg:'login_Successful!',
+                                token:token
+                            })
+                        })
+                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                }else{                    
+                    let UA=user.Uns_attempt
+                    UA=Number(UA)
+                    UA++
+                    user.Uns_attempt=UA
+                    if(UA==3){user.is_ban=true}
+                    user.save()
+                    return res.status(401).json({msg:'Auth Failed!'})
+                }
             })
         })
         .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
@@ -641,10 +685,52 @@ module.exports.extention=(req,res)=>{
     const decoded =jwt.verify(token,'secret')
     const Address=decoded.Address
     
-    Sites.findOne({Address:Address})
+    const mode=req.body.mode
+    
+    Sites.findOne({Address:Address})//1 mahe- 3 mahe- 6 mahe- 1 sale
         .then(site=>{
             const saveExt=function(){
+                let y=site.ExpireDate.year
+                let m=site.ExpireDate.month
+                let d=site.ExpireDate.day
+                y=Number(y)
+                m=Number(m)
+                d=Number(d)
                 
+                if(mode==1){
+                    m++
+                    if(m==13){
+                        m=1
+                        y++
+                    }
+                }else if(mode==2){
+                    m=m+3
+                    if(m>12){
+                        m=m-12
+                        y++
+                    }
+                }else if(mode==3){
+                    m=m+6
+                    if(m>12){
+                        m=m-12
+                        y++
+                    }
+                }
+                else if(mode==4){y++}
+                else{return res.status(403).json({msg:'Unsuccessful'})}
+                site.ExpireDate.year=y
+                site.ExpireDate.month=m
+                site.ExpireDate.day=d
+                site.save()
+                    .then(result=>{
+                        return res.status(200).json({
+                            msg:'extentioned',
+                            year:y,
+                            month:m,
+                            day:d
+                        })
+                    })
+                    .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
             }
             
             const pay=function(){
@@ -653,4 +739,91 @@ module.exports.extention=(req,res)=>{
             
             pay()
         })
+}
+
+module.exports.AddAllUsers=(req,res)=>{
+    const token=(req.headers.authorization.slice(7))
+    const decoded =jwt.verify(token,'secret')
+    const Address=decoded.Address
+    
+    const users=req.body.users
+    
+    Sites.findOne({Address:Address})
+        .then(site=>{
+            if(site.AddedUsers==true){return res.status(403).json({msg:'already Added'})}
+            const getusers=[...site.users]
+            for(let i=0;i<users.length;i++){
+                const rand=Math.floor(Math.random()*100000000)
+                getusers.push({
+                    username:users[i],
+                    registered:false,
+                    userid:null,
+                    usercode:rand
+                })
+            }
+            site.users=getusers
+            site.AddedUsers=true
+            site.save()
+                .then(result=>{return res.status(200).json({msg:'Added'})})
+                .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        })
+        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+}
+
+module.exports.getuserinfo=(req,res)=>{
+    const token=(req.headers.authorization.slice(7))
+    const decoded =jwt.verify(token,'secret')
+    const Email=decoded.Email
+    
+    User.findOne({Email:Email})
+        .then(user=>{
+            const fullName=user.fullName
+            const Email=user.Email
+            const sites=[...user.sites]
+            const postsites=[]
+            for(let i=0;i<sites.length;i++){
+                postsites.push({
+                    SiteAddress:sites[i].SiteAddress,
+                    username:sites[i].username
+                })
+            }
+            return res.status(200).json({
+                msg:'Done',
+                fullName:fullName,
+                Email:Email,
+                sites:postsites
+            })
+            
+        })
+        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+}
+
+module.exports.getsiteinfo=(req,res)=>{
+    const token=(req.headers.authorization.slice(7))
+    const decoded =jwt.verify(token,'secret')
+    const Address=decoded.Address
+    
+    Sites.findOne({Address:Address})
+        .then(site=>{
+            const getAddress=site.Address
+            const Email=site.Email
+            const ExpireDate=site.ExpireDate
+            const users=[...site.users]
+            const getusers=[]
+            for(i=0;i<users.length;i++){
+                getusers.push({
+                    username:users[i].username,
+                    registered:users[i].registered
+                })
+            }
+            return res.status(200).json({
+                msg:'Done',
+                Address:getAddress,
+                Email:Email,
+                ExpireDate:ExpireDate,
+                users:getusers
+            })
+            
+        })
+        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
 }
