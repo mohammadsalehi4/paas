@@ -12,6 +12,8 @@ router.post('/recovery/:Email/:code',userController.recovery);
 router.post('/changepassword',userController.changepassword);
 router.get('/userinfo',checkAuth,userController.getuserinfo);
 
+router.post('/sendemail',userController.sendemail);
+
 router.post('/signupForSites',userController.postSignUpForSites);//sabte nam site ha
 router.post('/loginForSites',userController.loginForSites);
 router.post('/AddUserToSiteDb',checkAuth,userController.AddUserToSiteDb);

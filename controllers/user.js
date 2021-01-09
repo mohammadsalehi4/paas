@@ -4,7 +4,34 @@ const User = require('../model/user')
 const bcrypt=require('bcryptjs')
 const Sites = require('../model/site')
 const jwt=require('jsonwebtoken')
-const site = require('../model/site')
+const nodemailer = require('nodemailer');
+
+
+const sendMail=function(email,subject,text){
+    
+    var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'mohamadsalehi473@gmail.com',
+          pass: '23220171eH'
+        }
+      });
+      
+      var mailOptions = {
+        from: 'mohamadsalehi473@gmail.com',
+        to: email,
+        subject: subject,
+        text:text
+      };
+      
+      transporter.sendMail(mailOptions, function(error, info){
+        if (error) {
+            return res.status(200).json({msg:'not sent'})
+        } else {
+            return res.status(200).json({msg:'sent'})
+        }
+      });
+}
 
 module.exports.postSignUp=(req,res)=>{
     const fullname=req.body.fullname
