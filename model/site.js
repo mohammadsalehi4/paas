@@ -59,7 +59,7 @@ const siteSchema=new Schema({
             type:String
         },
         usercode:{
-            type:Number
+            type:String
         }
     }]
 

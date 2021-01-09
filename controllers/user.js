@@ -38,6 +38,7 @@ module.exports.postSignUp=(req,res)=>{
         })
     }
     
+    
     const ExistingChecker=function(){
         User.find({Email:Email})
             .then(user=>{
@@ -70,6 +71,9 @@ module.exports.postSignUpForSites=(req,res)=>{
     function validateAddress(Address)
     {
         var reg = /^\w+([-+.']\w+)*\.\w+([-.]\w+)*$/
+        if(Address[0]!='w'||Address[1]!='w'||Address[2]!='w'||Address[3]!='.'){
+            return false
+        }
         if (reg.test(Address)){return true; }else{return false;}
     }
     
@@ -86,6 +90,7 @@ module.exports.postSignUpForSites=(req,res)=>{
                     is_ban:false,
                     Uns_attempt:0,
                     enable_to_change_password:false,
+                    AddedUsers:false,
                     ExpireDate:{
                         year:1399,
                         month:12,
@@ -227,12 +232,19 @@ module.exports.AddUserToSiteDb=(req,res)=>{
                     })
                 }
             }
-            const rand=Math.floor(Math.random()*100000000)
+            let code
+            const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
+            const rnd1=Math.floor(Math.random()*26)
+            code=letters[rnd1]
+            for(let i=0;i<5;i++){
+                const rnd=Math.floor(Math.random()*letters.length)
+                code=code+letters[rnd]
+            }
             users.push({
                 username:username,
                 registered:false,
                 userid:null,
-                usercode:rand
+                usercode:code
             })
             site.users=users
             site.save()
@@ -753,12 +765,15 @@ module.exports.AddAllUsers=(req,res)=>{
             if(site.AddedUsers==true){return res.status(403).json({msg:'already Added'})}
             const getusers=[...site.users]
             for(let i=0;i<users.length;i++){
-                const rand=Math.floor(Math.random()*100000000)
+                let code
+                const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
+                const rnd1=Math.floor(Math.random()*26)
+                code=letters[rnd1]
                 getusers.push({
                     username:users[i],
                     registered:false,
                     userid:null,
-                    usercode:rand
+                    usercode:code
                 })
             }
             site.users=getusers
@@ -793,7 +808,6 @@ module.exports.getuserinfo=(req,res)=>{
                 Email:Email,
                 sites:postsites
             })
-            
         })
         .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
 }
@@ -808,22 +822,42 @@ module.exports.getsiteinfo=(req,res)=>{
             const getAddress=site.Address
             const Email=site.Email
             const ExpireDate=site.ExpireDate
-            const users=[...site.users]
-            const getusers=[]
-            for(i=0;i<users.length;i++){
-                getusers.push({
-                    username:users[i].username,
-                    registered:users[i].registered
-                })
-            }
+            
             return res.status(200).json({
                 msg:'Done',
                 Address:getAddress,
                 Email:Email,
-                ExpireDate:ExpireDate,
-                users:getusers
+                ExpireDate:ExpireDate
             })
             
+        })
+        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+}
+
+module.exports.getusercode=(req,res)=>{
+    const token=(req.headers.authorization.slice(7))
+    const decoded =jwt.verify(token,'secret')
+    const Address=decoded.Address
+    
+    const username=req.body.username
+    
+    Sites.findOne({Address:Address})
+        .then(site=>{
+            const getuserinfo=[...site.users]
+            for(let i=0;i<getuserinfo.length;i++){
+                if(getuserinfo[i].username==username){
+                    if(getuserinfo[i].registered==true){
+                        return res.status(400).json({msg:'already_added'})
+                    }else{
+                        return res.status(200).json({
+                            msg:'not_Added',
+                            username:username,
+                            code:getuserinfo[i].usercode
+                        })
+                    }
+                }
+            }
+            return res.status(404).json({msg:'user_not_founded'})
         })
         .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
 }
