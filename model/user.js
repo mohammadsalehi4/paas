@@ -26,10 +26,6 @@ const userSchema=new Schema({
         required:true,
         type:Boolean
     },
-    is_google_register:{
-        required:true,
-        type:Boolean
-    },
     recoverycode:{
         required:true,
         type:String

@@ -8,11 +8,11 @@ router.post('/login',userController.postLogin);
 router.post('/AddSiteToDb',checkAuth,userController.AddSiteToDb);
 router.get('/getcode',checkAuth,userController.getcode);
 router.post('/sendrecoveryemail',userController.sendrecoveryemail);
-router.post('/recovery/:Email/:code',userController.recovery);
+router.get('/recovery/:Email/:code',userController.recovery);
 router.post('/changepassword',userController.changepassword);
 router.get('/userinfo',checkAuth,userController.getuserinfo);
 
-router.post('/sendemail',userController.sendemail);
+
 
 router.post('/signupForSites',userController.postSignUpForSites);//sabte nam site ha
 router.post('/loginForSites',userController.loginForSites);

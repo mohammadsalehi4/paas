@@ -25,11 +25,8 @@ const sendMail=function(email,subject,text){
       };
       
       transporter.sendMail(mailOptions, function(error, info){
-        if (error) {
-            return res.status(200).json({msg:'not sent'})
-        } else {
-            return res.status(200).json({msg:'sent'})
-        }
+        if (error) {return false} 
+        else {return true}
       });
 }
 
@@ -47,7 +44,7 @@ module.exports.postSignUp=(req,res)=>{
     const AddToDB=function(){
         bcrypt.hash(password,12,(err,hash)=>{
             if(err){
-                return res.status(403).json({msg:'Unsuccessful'})
+                return res.status(403).json({msg:'Unsuccessful1'})
             }else{
                 const user=new User({
                     fullName:fullname,
@@ -55,12 +52,13 @@ module.exports.postSignUp=(req,res)=>{
                     HashingPassword:hash,
                     Uns_attempt:0,
                     is_ban:false,
-                    is_google_register:false,
+                    enable_to_change_password:false,
+                    recoverycode:'empty',
                     sites:[]
                 })
                 user.save()
                     .then(result=>{return res.status(200).json({msg:'user created'})})
-                    .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                    .catch(err=>{return res.status(403).json({msg:'Unsuccessful2'})})
             }
         })
     }
@@ -515,9 +513,9 @@ module.exports.sendrecoveryemail=(req,res)=>{
                     user.recoverycode=hash
                     user.save()
                         .then(result=>{
+                            sendMail(Email,'recovery for paas Account',link)
                             return res.status(200).json({
-                                msg:'Email sent',
-                                link:link
+                                msg:'Email sent'
                             })
                         })
                         .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
@@ -556,7 +554,7 @@ module.exports.recovery=(req,res)=>{
                         })
                         .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
                 }else{
-                    return res.status(403).json({msg:'Unsuccessful'})
+                    return res.status(403).json({msg:code})
                 }
             })
         })
@@ -628,10 +626,13 @@ module.exports.sendrecoveryemailforsites=(req,res)=>{
                 }else{
                     site.recoverycode=hash
                     site.save()
-                    return res.status(200).json({
-                        msg:'Email sent',
-                        link:link
+                    .then(result=>{
+                        sendMail(Email,'recovery for paas Account',link)
+                        return res.status(200).json({
+                            msg:'Email sent'
+                        })
                     })
+                    .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
                 }
             })
             return true
