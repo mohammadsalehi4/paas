@@ -2,29 +2,28 @@ var express = require('express');
 var router = express.Router();
 const userController=require('../controllers/user')
 const checkAuth=require('../middleware/check-auth')
-
-router.post('/signup',userController.postSignUp);//sabte nam karbaran jadid
-router.post('/login',userController.postLogin);
-router.post('/AddSiteToDb',checkAuth,userController.AddSiteToDb);
-router.get('/getcode',checkAuth,userController.getcode);
-router.post('/sendrecoveryemail',userController.sendrecoveryemail);
-router.get('/recovery/:Email/:code',userController.recovery);
-router.post('/changepassword',userController.changepassword);
+/////////////////////////////////////////////USERS/////////////////////////////////////////////
+router.post('/signup',userController.postSignUp);/*Done*/
+router.post('/login',userController.postLogin);/*Done*/
+router.post('/AddSiteToDb',checkAuth,userController.AddSiteToDb);/*Done*/
+router.get('/getcode',checkAuth,userController.getcode);/*Done*/
+router.post('/sendrecoverylink',userController.sendrecoveryemail);
 router.get('/userinfo',checkAuth,userController.getuserinfo);
-
-
-
-router.post('/signupForSites',userController.postSignUpForSites);//sabte nam site ha
+router.delete('/DeleteAcc',checkAuth,userController.DeleteAccount);
+router.post('/setMail',checkAuth,userController.setEmail);
+router.get('/Active/:Number/:code',userController.ActiveEmail);
+/////////////////////////////////////////////BOTH/////////////////////////////////////////////
+router.get('/recovery/:mode/:ID/:code',userController.recovery);
+/////////////////////////////////////////////SITES/////////////////////////////////////////////
+router.post('/signupForSites',userController.postSignUpForSites);
 router.post('/loginForSites',userController.loginForSites);
 router.post('/AddUserToSiteDb',checkAuth,userController.AddUserToSiteDb);
 router.get('/confirm',checkAuth,userController.confirm);
-router.post('/sendrecoveryemailforsites',userController.sendrecoveryemailforsites);
-router.post('/recoverysite/:Address/:code',userController.recoverysite);
-router.post('/changepasswordforsite',userController.changepasswordforsite);
+router.post('/sendrecoverylinkforsites',userController.sendrecoveryemailforsites);
 router.post('/extention',checkAuth,userController.extention);
 router.post('/AddAllUsers',checkAuth,userController.AddAllUsers);
 router.get('/dashbord',checkAuth,userController.getsiteinfo);
 router.get('/getusercode',checkAuth,userController.getusercode);
-
+router.post('/sendDeleteLink',userController.SendDelLink)
 module.exports = router;
 

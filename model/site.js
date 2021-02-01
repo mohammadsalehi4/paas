@@ -10,13 +10,9 @@ const siteSchema=new Schema({
         required:true,
         type:String
     },
-    Email:{
+    Number:{
         required:true,
         type:String
-    },
-    enable_to_change_password:{
-        required:true,
-        type:Boolean
     },
     recoverycode:{
         required:true,
@@ -61,10 +57,7 @@ const siteSchema=new Schema({
         usercode:{
             type:String
         }
-    }]
-
-        
-    
+    }] 
 })
 
 module.exports=mongoose.model('Site',siteSchema)

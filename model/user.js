@@ -6,7 +6,11 @@ const userSchema=new Schema({
         required:true,
         type:String
     },
-    Email:{
+    Number:{
+        required:true,
+        type:String
+    },
+    DeviceId:{
         required:true,
         type:String
     },
@@ -22,11 +26,23 @@ const userSchema=new Schema({
         required:true,
         type:Boolean
     },
-    enable_to_change_password:{
+    recoverycode:{
+        required:true,
+        type:String
+    },
+    EmailAddress:{
+        required:true,
+        type:String
+    },
+    Added_Email:{
         required:true,
         type:Boolean
     },
-    recoverycode:{
+    Email_Activator_code:{
+        required:true,
+        type:String
+    },
+    Del_Acc_Link:{
         required:true,
         type:String
     },
