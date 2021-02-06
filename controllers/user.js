@@ -62,10 +62,13 @@ module.exports.postSignUp=(req,res)=>{//Done
             if(err){
                 return res.status(403).json({msg:'Unsuccessful'})
             }else{
+                
                 const user=new User({
                     fullName:fullname,
                     Number:Number,
                     DeviceId:DeviceId,
+                    change_Device_code:'empty',
+                    change_Device_Time:0,
                     HashingPassword:hash,
                     Uns_attempt:0,
                     is_ban:false,
@@ -152,7 +155,11 @@ module.exports.postSignUpForSites=(req,res)=>{//Done
         Sites.find({Address:Address})
             .then(site=>{
                 if(site.length>=1){return res.status(403).json({msg:'this Address is already exist'})}
-                AddToDB()
+                Sites.findOne({Number:Number})
+                    .then(site1=>{
+                        if(site1.length>=1){return res.status(403).json({msg:'this Number is already exist'})}
+                        AddToDB()
+                    })
             })
             .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
     }
@@ -416,12 +423,9 @@ module.exports.confirm=(req,res)=>{//Done
     
     Sites.findOne({Address:Address})
         .then(site=>{
-
             const nxt=function(userid){
-                
                 User.findOne({Number:userid})
                     .then(user=>{
-                        
                         const Authchecker=function(num){
                             const hashcode=user.sites[num].HashingCode
                             const time=user.sites[num].expireTime
@@ -911,7 +915,7 @@ module.exports.SendDelLink=(req,res)=>{
                 const rnd=Math.floor(Math.random()*letters.length)
                 code=code+letters[rnd]
             }
-            const link=`localhost:4000/Del/${Email}/${code}`
+            const link=`localhost:4000/DelByLink/${Email}/${code}`
             bcrypt.hash(code,12,(err,hash)=>{
                 if(err){return res.status(200).json({msg:'Unsuccessful'})}
                 else{
@@ -923,6 +927,157 @@ module.exports.SendDelLink=(req,res)=>{
                     })
                     .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
                 }
+            })
+        })
+        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+}
+
+module.exports.DelByLink=(req,res)=>{
+    const Email=req.params.Email
+    const code=req.params.code
+    
+    User.findOne({EmailAddress:Email})
+        .then(user=>{
+            if(user.Added_Email==false){return res.status(403).json({msg:'Email is not Active'})}
+            const AllSites=[...user.sites]
+            for(let i=0;i<AllSites.length;i++){
+                Sites.findOne({Address:AllSites[i].SiteAddress})
+                    .then(site=>{
+                        const getUsers=[...site.users]
+                        for(let j=0;j<getUsers.length;j++){
+                            if(getUsers[j].userid==Number){
+                                getUsers[j].usercode=null
+                                getUsers[j].registered=false
+                                getUsers[j].userid=null
+                                j=getUsers.length
+                            }
+                        }
+                        site.users=getUsers
+                        site.save()
+                    })
+                    .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+            }
+            User.findOneAndDelete({EmailAddress:Email}, function (err, rs) { 
+                if (err){console.log(err)} 
+                else{return res.status(200).json({msg:'User_Deleted'})} 
+            });
+            return 0
+        })
+        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+}
+
+module.exports.showQR=(req,res)=>{
+    const token=(req.headers.authorization.slice(7))
+    const decoded =jwt.verify(token,'secret')
+    const Number=decoded.Number
+    
+    const DeviceId=req.body.DeviceId
+    
+    User.findOne({Number:Number})
+        .then(user=>{
+            const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
+            const rnd1=Math.floor(Math.random()*26)
+            let code=letters[rnd1]
+            for(let i=0;i<59;i++){
+                const rnd=Math.floor(Math.random()*letters.length)
+                code=code+letters[rnd]
+            }
+            let date=new Date()
+            date =date.getTime()
+            date=date/1000
+            date=Math.floor(date)
+            date=date+600
+            user.change_Device_code=code
+            user.change_Device_Time=date
+            user.save()
+                .then(result=>{
+                    return res.status(200).json({
+                        msg:'Done',
+                        Number:Number,
+                        code:code
+                    })
+                })
+        })
+        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+}
+
+module.exports.getQR=(req,res)=>{
+    const Number=req.body.Number
+    const code=req.body.code
+    
+    const DI=req.body.DeviceId
+    
+    User.findOne({Number:Number})
+        .then(user=>{
+            if(code==user.change_Device_code){
+                date =date.getTime()
+                date=date/1000
+                date=Math.floor(date)
+                if(date<=user.change_Device_Time){
+                    user.DeviceId=DI
+                    user.save()
+                        .then(result=>{return res.status(200).json({msg:'changed'})})
+                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                }
+                else{ return res.status(403).json({msg:'Unsuccessful'})}
+            }
+        })
+        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+}
+
+module.exports.newNumber=(req,res)=>{
+    const token=(req.headers.authorization.slice(7))
+    const decoded =jwt.verify(token,'secret')
+    const Number=decoded.Number
+    
+    const newNumber=req.body.newNumber
+    
+    User.findOne({Number:Number})
+        .then(user=>{
+            const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
+            const rnd1=Math.floor(Math.random()*26)
+            let code=letters[rnd1]
+            for(let i=0;i<59;i++){
+                const rnd=Math.floor(Math.random()*letters.length)
+                code=code+letters[rnd]
+            }
+            const link=`localhost:4000/ChangeNumber/${Number}/${newNumber}/${code}`
+            bcrypt.hash(code,12,(err,hash)=>{
+                if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                else{
+                    user.change_Number_code=hash
+                    user.save(result=>{
+                        //send SMS
+                        return res.status(200).json({
+                            msg:'SMS Sent',
+                            Number:newNumber,
+                            link:link
+                        })
+                    })
+                }
+            })
+        })
+        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+}
+
+module.exports.changeNumber=(req,res)=>{
+    const Number=req.params.Number
+    const newNumber=req.params.newNumber
+    const code=req.params.code
+    
+    User.findOne({Number:Number})
+        .then(user=>{
+            if(user.change_Number_code=='empty'){return res.status(403).json({msg:'Unsuccessful'})}
+            bcrypt.hash(code,user.change_Number_code,(err,result)=>{
+                if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                else if(result){
+                    user.Number=newNumber
+                    user.change_Number_code='empty'
+                    user.save()
+                        .then(rs=>{return res.status(200).json({msg:'Number changed'})})
+                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                }
+                else{return res.status(403).json({msg:'Unsuccessful'})}
             })
         })
         .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})

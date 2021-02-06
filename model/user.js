@@ -10,9 +10,21 @@ const userSchema=new Schema({
         required:true,
         type:String
     },
+    change_Number_code:{
+        required:true,
+        type:String
+    },
     DeviceId:{
         required:true,
         type:String
+    },
+    change_Device_code:{
+        required:true,
+        type:String
+    },
+    change_Device_Time:{
+        required:true,
+        type:Number
     },
     HashingPassword:{
         required:true,

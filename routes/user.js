@@ -12,6 +12,10 @@ router.get('/userinfo',checkAuth,userController.getuserinfo);
 router.delete('/DeleteAcc',checkAuth,userController.DeleteAccount);
 router.post('/setMail',checkAuth,userController.setEmail);
 router.get('/Active/:Number/:code',userController.ActiveEmail);
+router.get('/showQR',checkAuth,userController.showQR)
+router.post('/getQR',userController.getQR)
+router.post('/newNumber',checkAuth,userController.newNumber)
+router.get('/changeNumber/:Number/:newNumber/:code',userController.changeNumber)
 /////////////////////////////////////////////BOTH/////////////////////////////////////////////
 router.get('/recovery/:mode/:ID/:code',userController.recovery);
 /////////////////////////////////////////////SITES/////////////////////////////////////////////
@@ -25,5 +29,6 @@ router.post('/AddAllUsers',checkAuth,userController.AddAllUsers);
 router.get('/dashbord',checkAuth,userController.getsiteinfo);
 router.get('/getusercode',checkAuth,userController.getusercode);
 router.post('/sendDeleteLink',userController.SendDelLink)
+router.get('/DelByLink/:Email/:code',userController.DelByLink)
 module.exports = router;
 
