@@ -5,7 +5,11 @@ const bcrypt=require('bcryptjs')
 const Sites = require('../model/site')
 const jwt=require('jsonwebtoken')
 const nodemailer = require('nodemailer');
+const sendSMS=require('trez-sms-client')
 const { get } = require('mongoose')
+const client=new sendSMS('mohammad4salehi','59215921')
+const GroupID=client.getRandomGroupId()
+const sender="5000224456787"
 
 function validateNumber(num){
     if(num.length!=11){return false;}
@@ -14,6 +18,12 @@ function validateNumber(num){
     if(a!=num){return false;}
     if(num[0]!=0){return false}
     return true;
+}
+
+function sendMessage(Number,Message){
+    client.sendMessage(sender,Number ,Message,GroupID)
+	.then((receipt) => {return 'ok';})
+	.catch((error) => {return 'error';});
 }
 
 function validateEmail(email)
@@ -58,32 +68,48 @@ module.exports.postSignUp=(req,res)=>{//Done
     Number=String(Number)
     
     const AddToDB=function(){
-        bcrypt.hash(password,12,(err,hash)=>{
+        bcrypt.hash(password,12,(err,hash1)=>{
             if(err){
                 return res.status(403).json({msg:'Unsuccessful'})
             }else{
-                
-                const user=new User({
-                    fullName:fullname,
-                    Number:Number,
-                    DeviceId:DeviceId,
-                    change_Device_code:'empty',
-                    change_Device_Time:0,
-                    HashingPassword:hash,
-                    Uns_attempt:0,
-                    is_ban:false,
-                    recoverycode:'empty',
-                    EmailAddress:'null',
-                    Email_Activator_code:'Empty',
-                    Added_Email:false,
-                    Del_Acc_Link:'empty',
-                    sites:[]
+                const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
+                const rnd1=Math.floor(Math.random()*26)
+                let code=letters[rnd1]
+                for(let i=0;i<59;i++){
+                    const rnd=Math.floor(Math.random()*letters.length)
+                    code=code+letters[rnd]
+                }
+                bcrypt.hash(code,12,(err,hash)=>{
+                    if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                    else{
+                        const link=`localhost.com/ActiveAccount/${Number}/${code}`
+                        const user=new User({
+                            fullName:fullname,
+                            Number:Number,
+                            change_Number_code:'empty',
+                            Activator_code:hash,
+                            DeviceId:DeviceId,
+                            change_Device_code:'empty',
+                            change_Device_Time:0,
+                            HashingPassword:hash1,
+                            Uns_attempt:0,
+                            is_ban:true,
+                            recoverycode:'empty',
+                            EmailAddress:'empty',
+                            Email_Activator_code:'Empty',
+                            Added_Email:false,
+                            Del_Acc_Link:'empty',
+                            sites:[]
+                        })
+                        user.save()
+                            .then(result=>{
+                                client.sendMessage(sender,Number ,`برای فعالسازی اکانت روی لینک زیر کلیک کنید.\n${link}`,GroupID)
+                                .then((receipt) => {return res.status(200).json({msg:'user created'})})
+                                .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                            })
+                            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                    }
                 })
-                user.save()
-                    .then(result=>{
-                        return res.status(200).json({msg:'user created'})
-                    })
-                    .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
             }
         })
     }
@@ -111,7 +137,6 @@ module.exports.postSignUpForSites=(req,res)=>{//Done
     const Number=req.body.Number
     const password=req.body.password
     
-    
     function validateAddress(Address)
     {
         var reg = /^\w+([-+.']\w+)*\.\w+([-.]\w+)*$/
@@ -122,33 +147,48 @@ module.exports.postSignUpForSites=(req,res)=>{//Done
     }
     
     const AddToDB=function(){
-        bcrypt.hash(password,12,(err,hash)=>{
+        bcrypt.hash(password,12,(err,hash1)=>{
             if(err){
                 return res.status(403).json({msg:'Unsuccessful'})
             }else{
-                const site =new Sites({
-                    Address:Address,
-                    HashingPassWord:hash,
-                    Number:Number,
-                    recoverycode:'0',
-                    is_ban:false,
-                    Uns_attempt:0,
-                    AddedUsers:false,
-                    ExpireDate:{
-                        year:1399,
-                        month:12,
-                        day:29
-                    },
-                    users:[]
+                const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
+                const rnd1=Math.floor(Math.random()*26)
+                let code=letters[rnd1]
+                for(let i=0;i<59;i++){
+                    const rnd=Math.floor(Math.random()*letters.length)
+                    code=code+letters[rnd]
+                }
+                bcrypt.hash(code,12,(err,hash)=>{
+                    if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                    else{
+                        const link=`localhost.com/ActiveSite/${Address}/${code}`
+                        const site =new Sites({
+                            Address:Address,
+                            HashingPassWord:hash1,
+                            Number:Number,
+                            recoverycode:'0',
+                            Activator_code:hash,
+                            is_ban:true,
+                            Uns_attempt:0,
+                            AddedUsers:false,
+                            ExpireDate:{
+                                year:1399,
+                                month:12,
+                                day:29
+                            },
+                            users:[]
+                        })
+                        Sites.save()
+                            .then(result=>{
+                                client.sendMessage(sender,Number ,`برای فعالسازی اکانت روی لینک زیر کلیک کنید.\n${link}`,GroupID)
+                                .then((receipt) => {return res.status(200).json({msg:'user created'})})
+                                .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                            })
+                            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                    }
                 })
-                site.save()
-                    .then(result=>{
-                        return(res.status(200).json({msg:'site registred'}))
-                    })
-                    .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
             }
         })
-
     }
     
     const ExistingChecker=function(){
@@ -173,6 +213,56 @@ module.exports.postSignUpForSites=(req,res)=>{//Done
     Validator()
 }
 
+module.exports.ActiveAccount=(req,res)=>{
+    const Number=req.params.Number
+    const code=req.params.code
+    
+    User.findOne({Number:Number})
+        .then(user=>{
+            if(user.Activator_code=='empty'){return res.status(403).json({msg:'Unsuccessful'})}
+            bcrypt.compare(code,user.Activator_code,(err,result)=>{
+                if(err){
+                    return res.status(403).json({msg:'Unsuccessful'})
+                }else if(result){
+                    user.is_ban=false
+                    user.Uns_attempt=0
+                    user.Activator_code='empty'
+                    user.save() 
+                        .then(rs=>{return res.status(200).json({msg:'Account is Active'})})
+                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                }else{
+                    return res.status(403).json({msg:'Unsuccessful'})
+                }
+            })
+        })
+        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+}
+
+module.exports.ActiveSite=(req,res)=>{
+    const Address=req.params.Address
+    const code=req.params.code
+    
+    Sites.findOne({Address:Address})
+        .then(user=>{
+            if(user.Activator_code=='empty'){return res.status(403).json({msg:'Unsuccessful'})}
+            bcrypt.compare(code,user.Activator_code,(err,result)=>{
+                if(err){
+                    return res.status(403).json({msg:'Unsuccessful'})
+                }else if(result){
+                    user.is_ban=false
+                    user.Uns_attempt=0
+                    user.Activator_code='empty'
+                    user.save() 
+                        .then(rs=>{return res.status(200).json({msg:'Account is Active'})})
+                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                }else{
+                    return res.status(403).json({msg:'Unsuccessful'})
+                }
+            })
+        })
+        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+}
+
 module.exports.postLogin=(req,res)=>{//Done
     const Number=req.body.Number
     const password=req.body.password
@@ -180,7 +270,28 @@ module.exports.postLogin=(req,res)=>{//Done
     
     User.findOne({Number:Number})
         .then(user=>{
-            if(user.is_ban==true){return res.status(403).json({msg:'ban'})}
+            if(user.is_ban==true){
+                const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
+                const rnd1=Math.floor(Math.random()*26)
+                let code=letters[rnd1]
+                for(let i=0;i<59;i++){
+                    const rnd=Math.floor(Math.random()*letters.length)
+                    code=code+letters[rnd]
+                }
+                bcrypt.hash(code,12,(err,hash)=>{
+                    if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                    else{
+                        const link=`localhost.com/ActiveAccount/${Number}/${code}`
+                        user.Activator_code=hash
+                        user.save()
+                            .then(result=>{
+                                client.sendMessage(sender,Number ,`برای فعالسازی اکانت روی لینک زیر کلیک کنید.\n${link}`,GroupID)
+                            })
+                            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                    }
+                })
+                return res.status(403).json({msg:'ban'})
+            }
             if(user.DeviceId!=DeviceId){return res.status(403).json({msg:'Wrong_Device_ID'})}
             bcrypt.compare(password,user.HashingPassword,(err,result)=>{
                 if(err){
@@ -226,7 +337,29 @@ module.exports.loginForSites=(req,res)=>{//Done
     
     Sites.findOne({Address:Address})
         .then(user=>{
-            if(user.is_ban==true){return res.status(403).json({msg:'ban'})}
+            if(user.is_ban==true){
+                const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
+                const rnd1=Math.floor(Math.random()*26)
+                let code=letters[rnd1]
+                for(let i=0;i<59;i++){
+                    const rnd=Math.floor(Math.random()*letters.length)
+                    code=code+letters[rnd]
+                }
+                bcrypt.hash(code,12,(err,hash)=>{
+                    if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                    else{
+                        const link=`localhost.com/ActiveSite/${Address}/${code}`
+                        user.Activator_code=hash
+                        user.save()
+                            .then(result=>{
+                                client.sendMessage(sender,user.Number ,`برای فعالسازی اکانت روی لینک زیر کلیک کنید.\n${link}`,GroupID)
+                            })
+                            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                    }
+                })
+                return res.status(403).json({msg:'ban'})
+                return res.status(403).json({msg:'ban'})
+            }
             bcrypt.compare(password,user.HashingPassWord,(err,result)=>{
                 if(err){
                     let UA=user.Uns_attempt
@@ -535,10 +668,9 @@ module.exports.sendrecoveryemail=(req,res)=>{//Done
                     user.recoverycode=hash
                     user.save()
                         .then(result=>{
-                            return res.status(200).json({
-                                msg:'link sent',
-                                link:link
-                            })
+                            client.sendMessage(sender,Number ,`برای فعالسازی دوباره اکانت روی لینک زیر کلیک کنید.\n${link}`,GroupID)
+                            .then((receipt) => {return res.status(200).json({msg:'link sent',link:link})})
+                            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
                         })
                         .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
                 }
@@ -625,10 +757,13 @@ module.exports.sendrecoveryemailforsites=(req,res)=>{//Done
                     site.recoverycode=hash
                     site.save()
                     .then(result=>{
-                        return res.status(200).json({
-                            msg:'link sent',
-                            link:link
+                        site.save()
+                        .then(result=>{
+                            client.sendMessage(sender,Number ,`برای فعالسازی دوباره اکانت روی لینک زیر کلیک کنید.\n${link}`,GroupID)
+                            .then((receipt) => {return res.status(200).json({msg:'link sent',link:link})})
+                            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
                         })
+                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
                     })
                     .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
                 }
@@ -1048,11 +1183,13 @@ module.exports.newNumber=(req,res)=>{
                     user.change_Number_code=hash
                     user.save(result=>{
                         //send SMS
-                        return res.status(200).json({
-                            msg:'SMS Sent',
-                            Number:newNumber,
-                            link:link
+                        user.save()
+                        .then(result=>{
+                            client.sendMessage(sender,Number ,`برای تغغیر شماره روی لینک زیر کلیک کنید.\n${link}`,GroupID)
+                            .then((receipt) => {return res.status(200).json({msg:'link sent',link:link,Number:newNumber})})
+                            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
                         })
+                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
                     })
                 }
             })
@@ -1082,3 +1219,4 @@ module.exports.changeNumber=(req,res)=>{
         })
         .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
 }
+

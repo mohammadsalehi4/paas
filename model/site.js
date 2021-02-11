@@ -18,6 +18,10 @@ const siteSchema=new Schema({
         required:true,
         type:String
     },
+    Activator_code:{
+        required:true,
+        type:String
+    },
     is_ban:{
         required:true,
         type:Boolean

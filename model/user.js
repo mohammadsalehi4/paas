@@ -10,23 +10,7 @@ const userSchema=new Schema({
         required:true,
         type:String
     },
-    change_Number_code:{
-        required:true,
-        type:String
-    },
     DeviceId:{
-        required:true,
-        type:String
-    },
-    change_Device_code:{
-        required:true,
-        type:String
-    },
-    change_Device_Time:{
-        required:true,
-        type:Number
-    },
-    HashingPassword:{
         required:true,
         type:String
     },
@@ -38,10 +22,6 @@ const userSchema=new Schema({
         required:true,
         type:Boolean
     },
-    recoverycode:{
-        required:true,
-        type:String
-    },
     EmailAddress:{
         required:true,
         type:String
@@ -51,6 +31,30 @@ const userSchema=new Schema({
         type:Boolean
     },
     Email_Activator_code:{
+        required:true,
+        type:String
+    },
+    HashingPassword:{
+        required:true,
+        type:String
+    },
+    change_Number_code:{
+        required:true,
+        type:String
+    },
+    Activator_code:{
+        required:true,
+        type:String
+    },
+    change_Device_code:{
+        required:true,
+        type:String
+    },
+    change_Device_Time:{
+        required:true,
+        type:Number
+    },
+    recoverycode:{
         required:true,
         type:String
     },
