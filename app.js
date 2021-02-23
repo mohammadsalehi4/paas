@@ -6,7 +6,6 @@ const mongoose = require("mongoose");
 const app = express();
 
 const userRoutes=require('./routes/user')
-const adminRoutes=require('./routes/admin')
 //set allow origin * for every request
 app.use(cors());
 
@@ -20,7 +19,6 @@ const MONGOSE_URL = process.env.MONGOSE_URL || "";
 console.log("url", MONGOSE_URL);
 
 app.use('/',userRoutes)
-app.use('/admin',adminRoutes)
 
 app.listen(PORT, () => {
   console.log(`server is running on PORT:${PORT} `);
