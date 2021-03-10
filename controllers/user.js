@@ -43,13 +43,13 @@ const sendMail=function(email,subject,text){
     var transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: 'mohamadsalehi473@gmail.com',
-          pass: '23220171eH'
+          user: 'paassoftwareteam@gmail.com',
+          pass: '592159215921'
         }
       });
       
       var mailOptions = {
-        from: 'mohamadsalehi473@gmail.com',
+        from: 'paassoftwareteam@gmail.com',
         to: email,
         subject: subject,
         text:text
@@ -105,7 +105,7 @@ module.exports.postSignUp=(req,res)=>{
                         })
                         user.save()
                             .then(result=>{
-                                client.sendMessage(sender,Number ,`.برای فعالسازی اکانت روی لینک زیر کلیک کنید.\n${link}`,GroupID)
+                                client.sendMessage(sender,Number ,`use this link to Activation Account:\n${link}`,GroupID)
                                 .then((receipt) => {return res.status(200).json({msg:'user created'})})
                                 .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
                             })
@@ -182,8 +182,7 @@ module.exports.postSignUpForSites=(req,res)=>{
                         })
                         site.save()
                             .then(result=>{
-                                return res.status(200).json({msg:'user created',link:link})
-                                client.sendMessage(sender,Number ,`برای فعالسازی اکانت روی لینک زیر کلیک کنید.\n${link}`,GroupID)
+                                client.sendMessage(sender,Number ,`use this link to Activation Account:\n${link}`,GroupID)
                                 .then((receipt) => {return res.status(200).json({msg:'user created'})})
                                 .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
                             })
@@ -288,7 +287,7 @@ module.exports.postLogin=(req,res)=>{
                         user.Activator_code=hash
                         user.save()
                             .then(result=>{
-                                client.sendMessage(sender,Number ,`برای فعالسازی اکانت روی لینک زیر کلیک کنید.\n${link}`,GroupID)
+                                client.sendMessage(sender,Number ,`use this link to Activation Account:\n${link}`,GroupID)
                             })
                             .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
                     }
@@ -355,7 +354,7 @@ module.exports.loginForSites=(req,res)=>{//Done
                         user.Activator_code=hash
                         user.save()
                             .then(result=>{
-                                client.sendMessage(sender,user.Number ,`برای فعالسازی اکانت روی لینک زیر کلیک کنید.\n${link}`,GroupID)
+                                client.sendMessage(sender,user.Number ,`use this link to Activation Account:\n${link}`,GroupID)
                             })
                             .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
                     }
@@ -763,8 +762,7 @@ module.exports.sendrecoveryemailforsites=(req,res)=>{//Done
                     .then(result=>{
                         site.save()
                         .then(result=>{
-                            return res.status(200).json({msg:'link sent',link:link})
-                            client.sendMessage(sender,Number ,`برای فعالسازی اکانت و بازیابی رمز، روی لینک زیر کلیک کنید.\n${link}`,GroupID)
+                            client.sendMessage(sender,Number ,`use this link to Activation Account or choose new password:\n${link}`,GroupID)
                             .then((receipt) => {return res.status(200).json({msg:'link sent'})})
                             .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
                         })
@@ -1211,7 +1209,7 @@ module.exports.newNumber=(req,res)=>{
                         //send SMS
                         user.save()
                         .then(result=>{
-                            client.sendMessage(sender,Number ,`برای تغغیر شماره روی لینک زیر کلیک کنید.\n${link}`,GroupID)
+                            client.sendMessage(sender,Number ,`use this link to change Number:\n${link}`,GroupID)
                             .then((receipt) => {return res.status(200).json({msg:'link sent'})})
                             .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
                         })
