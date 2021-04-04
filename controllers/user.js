@@ -9,7 +9,7 @@ const sendSMS=require('trez-sms-client')
 const { get } = require('mongoose')
 const { use } = require('../routes/user')
 const user = require('../model/user')
-const client=new sendSMS('mohammad4salehi','59215921')
+const client=new sendSMS('mohammad4salehi','---------')
 const GroupID=client.getRandomGroupId()
 const sender="5000224456787"
 
@@ -44,7 +44,7 @@ const sendMail=function(email,subject,text){
         service: 'gmail',
         auth: {
           user: 'paassoftwareteam@gmail.com',
-          pass: '592159215921'
+          pass: '------------'
         }
       });
       
