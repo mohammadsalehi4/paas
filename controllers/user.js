@@ -7,7 +7,7 @@ const jwt=require('jsonwebtoken')
 const nodemailer = require('nodemailer');
 const sendSMS=require('trez-sms-client')
 const { get } = require('mongoose')
-const { use } = require('../routes/user')
+const { use } = require('../routes/routes')
 const user = require('../model/user')
 const client=new sendSMS('mohammad4salehi','---------')
 const GroupID=client.getRandomGroupId()
@@ -62,7 +62,6 @@ const sendMail=function(email,subject,text){
 }
 
 module.exports.postSignUp=(req,res)=>{
-    const fullname=req.body.fullname
     let Number=req.body.Number
     const DeviceId=req.body.DeviceId
     const password=req.body.password
@@ -72,7 +71,12 @@ module.exports.postSignUp=(req,res)=>{
     const AddToDB=function(){
         bcrypt.hash(password,12,(err,hash1)=>{
             if(err){
-                return res.status(403).json({msg:'Unsuccessful'})
+                return res.status(403).json({
+                    msg:'Unsuccessful',
+                    error:err,
+                    success:false,
+                    status:403
+                })
             }else{
                 const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
                 const rnd1=Math.floor(Math.random()*26)
@@ -82,11 +86,15 @@ module.exports.postSignUp=(req,res)=>{
                     code=code+letters[rnd]
                 }
                 bcrypt.hash(code,12,(err,hash)=>{
-                    if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                    if(err){return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })}
                     else{
                         const link=`localhost:4000/ActiveAccount/${Number}/${code}`
                         const user=new User({
-                            fullName:fullname,
                             Number:Number,
                             change_Number_code:'empty',
                             Activator_code:hash,
@@ -105,11 +113,24 @@ module.exports.postSignUp=(req,res)=>{
                         })
                         user.save()
                             .then(result=>{
-                                client.sendMessage(sender,Number ,`use this link to Activation Account:\n${link}`,GroupID)
-                                .then((receipt) => {return res.status(200).json({msg:'user created'})})
-                                .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                                // client.sendMessage(sender,Number ,`use this link to Activation Account:\n${link}`,GroupID)
+                                // .then((receipt) => {return res.status(200).json({msg:'user created'})})
+                                // .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                                
+                                return res.status(200).json({/*MOVAGHATI- LINK RA BAYAD PAYAMAK KONAD*/
+                                    msg:'user created',
+                                    link:link,
+                                    success:true,
+                                    error:[],
+                                    status:200
+                                })
                             })
-                            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                            .catch(err=>{return res.status(403).json({
+                                msg:'Unsuccessful',
+                                error:err,
+                                success:false,
+                                status:403
+                            })})
                     }
                 })
             }
@@ -119,16 +140,35 @@ module.exports.postSignUp=(req,res)=>{
     const ExistingChecker=function(){
         User.find({Number:Number})
             .then(user=>{
-                if(user.length>=1){return res.status(403).json({msg:'this Number is already exist'})}
+                if(user.length>=1){return res.status(403).json({
+                    msg:'this Number is already exist',
+                    error:['repetitive Number'],
+                    success:false,
+                    status:403
+                })}
                 AddToDB()
             })
-            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+            .catch(err=>{return res.status(403).json({
+                msg:'Unsuccessful',
+                error:err,
+                success:false,
+                status:403
+            })})
     }
     
     const Validator=function(){
-        if(validateNumber(Number)==false){return res.status(403).json({msg:'Wrong Phone Number format'})}
-        if(password.length<8){return res.status(403).json({msg:'Enter longer password'})}
-        if(fullname==' '||fullname==''||fullname.length<=2){return res.status(403).json({ msg:'enter true fullname'})}
+        if(validateNumber(Number)==false){return res.status(403).json({
+            msg:'Wrong Phone Number format',
+            error:['Wrong Phone Number'],
+            success:false,
+            status:403
+        })}
+        if(password.length<8){return res.status(403).json({
+            msg:'Enter longer password',
+            error:['too short Password'],
+            success:false,
+            status:403
+        })}
         ExistingChecker()
     }
     Validator()
@@ -151,7 +191,12 @@ module.exports.postSignUpForSites=(req,res)=>{
     const AddToDB=function(){
         bcrypt.hash(password,12,(err,hash1)=>{
             if(err){
-                return res.status(403).json({msg:'Unsuccessful'})
+                return res.status(403).json({
+                    msg:'Unsuccessful',
+                    error:err,
+                    success:false,
+                    status:403
+                })
             }else{
                 const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
                 const rnd1=Math.floor(Math.random()*26)
@@ -161,7 +206,12 @@ module.exports.postSignUpForSites=(req,res)=>{
                     code=code+letters[rnd]
                 }
                 bcrypt.hash(code,12,(err,hash)=>{
-                    if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                    if(err){return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })}
                     else{
                         const link=`localhost:4000/ActiveSite/${Address}/${code}`
                         const site =new Sites({
@@ -182,11 +232,34 @@ module.exports.postSignUpForSites=(req,res)=>{
                         })
                         site.save()
                             .then(result=>{
-                                client.sendMessage(sender,Number ,`use this link to Activation Account:\n${link}`,GroupID)
-                                .then((receipt) => {return res.status(200).json({msg:'user created'})})
-                                .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                                // client.sendMessage(sender,Number ,`use this link to Activation Account:\n${link}`,GroupID)
+                                // .then((receipt) => {return res.status(200).json({
+                                //     msg:'user created',
+                                //     error:[],
+                                //     success:true,
+                                //     status:200
+                                // })})
+                                // .catch(err=>{return res.status(403).json({
+                                //     msg:'Unsuccessful',
+                                //     error:err,
+                                //     success:false,
+                                //     status:403
+                                // })})
+                                
+                                return res.status(200).json({/*MOVAGHATI- BAYAD PAYAMAK ERSAL SHAVAD*/
+                                    msg:'user created',
+                                    link:link,
+                                    error:[],
+                                    success:true,
+                                    status:200
+                                })
                             })
-                            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                            .catch(err=>{return res.status(403).json({
+                                msg:'Unsuccessful',
+                                error:err,
+                                success:false,
+                                status:403
+                            })})
                     }
                 })
             }
@@ -196,20 +269,50 @@ module.exports.postSignUpForSites=(req,res)=>{
     const ExistingChecker=function(){
         Sites.find({Address:Address})
             .then(site=>{
-                if(site.length>=1){return res.status(403).json({msg:'this Address is already exist'})}
+                if(site.length>=1){return res.status(403).json({
+                    msg:'this Address is already exist',
+                    error:['repetitive Address'],
+                    success:false,
+                    status:403
+                })}
                 Sites.find({Number:Number})
                     .then(site1=>{
-                        if(site1.length>=1){return res.status(403).json({msg:'this Number is already exist'})}
+                        if(site1.length>=1){return res.status(403).json({
+                            msg:'this Number is already exist',
+                            error:['repetitive Number'],
+                            success:false,
+                            status:403
+                        })}
                         AddToDB()
                     })
             })
-            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+            .catch(err=>{return res.status(403).json({
+                msg:'Unsuccessful',
+                error:err,
+                success:false,
+                status:403
+            })})
     }
     
     const Validator=function(){
-        if(validateNumber(Number)==false){return res.status(403).json({msg:'Wrong Phone Number format'})}
-        if(validateAddress(Address)==false){return res.status(403).json({msg:'Wrong Address'})}
-        if(password.length<16){return res.status(403).json({msg:'Enter longer password'})}
+        if(validateNumber(Number)==false){return res.status(403).json({
+            msg:'Wrong Phone Number format',
+            error:['Wrong Number'],
+            success:false,
+            status:403
+        })}
+        if(validateAddress(Address)==false){return res.status(403).json({
+            msg:'Wrong Address',
+            error:['Wrong Address'],
+            success:false,
+            status:403
+        })}
+        if(password.length<16){return res.status(403).json({
+            msg:'Enter longer password',
+            error:['too short password'],
+            success:false,
+            status:403
+        })}
         ExistingChecker()
     }
     Validator()
@@ -221,23 +324,53 @@ module.exports.ActiveAccount=(req,res)=>{
     
     User.findOne({Number:Number})
         .then(user=>{
-            if(user.Activator_code=='empty'){return res.status(403).json({msg:'Unsuccessful'})}
+            if(user.Activator_code=='empty'){return res.status(403).json({
+                msg:'enter true link',
+                error:['this link is not available'],
+                success:false,
+                status:403
+            })}
             bcrypt.compare(code,user.Activator_code,(err,result)=>{
                 if(err){
-                    return res.status(403).json({msg:'Unsuccessful'})
+                    return res.status(403).json({
+                        msg:'wrong password',
+                        error:err,
+                        success:false,
+                        status:403
+                    })
                 }else if(result){
                     user.is_ban=false
                     user.Uns_attempt=0
                     user.Activator_code='empty'
                     user.save() 
-                        .then(rs=>{return res.status(200).json({msg:'Account is Active'})})
-                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                        .then(rs=>{return res.status(200).json({
+                            msg:'Account is Active',
+                            error:[],
+                            success:true,
+                            status:200
+                        })})
+                        .catch(err=>{return res.status(403).json({
+                            msg:'Unsuccessful',
+                            error:err,
+                            success:false,
+                            status:403
+                        })})
                 }else{
-                    return res.status(403).json({msg:'Unsuccessful'})
+                    return res.status(403).json({
+                        msg:'wrong password',
+                        error:['wrong password'],
+                        success:false,
+                        status:403
+                    })
                 }
             })
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.ActiveSite=(req,res)=>{
@@ -246,23 +379,53 @@ module.exports.ActiveSite=(req,res)=>{
     
     Sites.findOne({Address:Address})
         .then(user=>{
-            if(user.Activator_code=='empty'){return res.status(403).json({msg:'Unsuccessful1'})}
+            if(user.Activator_code=='empty'){return res.status(403).json({
+                msg:'enter true link',
+                error:['this link is not available'],
+                success:false,
+                status:403
+            })}
             bcrypt.compare(code,user.Activator_code,(err,result)=>{
                 if(err){
-                    return res.status(403).json({msg:'Unsuccessful2'})
+                    return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })
                 }else if(result){
                     user.is_ban=false
                     user.Uns_attempt=0
                     user.Activator_code='empty'
                     user.save() 
-                        .then(rs=>{return res.status(200).json({msg:'Account is Active'})})
-                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful3'})})
+                        .then(rs=>{return res.status(200).json({
+                            msg:'Account is Active',
+                            error:[],
+                            success:true,
+                            status:200
+                        })})
+                        .catch(err=>{return res.status(403).json({
+                            msg:'Unsuccessful',
+                            error:err,
+                            success:false,
+                            status:403
+                        })})
                 }else{
-                    return res.status(403).json({msg:'Unsuccessful4'})
+                    return res.status(403).json({
+                        msg:'wrong password',
+                        error:['wrong password'],
+                        success:false,
+                        status:403
+                    })
                 }
             })
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful5'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.postLogin=(req,res)=>{
@@ -281,20 +444,40 @@ module.exports.postLogin=(req,res)=>{
                     code=code+letters[rnd]
                 }
                 bcrypt.hash(code,12,(err,hash)=>{
-                    if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                    if(err){return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })}
                     else{
                         const link=`localhost.com/ActiveAccount/${Number}/${code}`
                         user.Activator_code=hash
                         user.save()
                             .then(result=>{
-                                client.sendMessage(sender,Number ,`use this link to Activation Account:\n${link}`,GroupID)
+                                //client.sendMessage(sender,Number ,`use this link to Activation Account:\n${link}`,GroupID)
                             })
-                            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                            .catch(err=>{return res.status(403).json({
+                                msg:'Unsuccessful',
+                                error:err,
+                                success:false,
+                                status:403
+                            })})
                     }
                 })
-                return res.status(403).json({msg:'ban'})
+                return res.status(403).json({/*MOVAGHATI*/
+                    msg:'active your account',
+                    error:['account is ban'],
+                    success:false,
+                    status:403
+                })
             }
-            if(user.DeviceId!=DeviceId){return res.status(403).json({msg:'Wrong_Device_ID'})}
+            if(user.DeviceId!=DeviceId){return res.status(403).json({
+                msg:'Wrong_Device_ID',
+                error:['Wrong_Device_ID'],
+                success:false,
+                status:403
+            })}
             bcrypt.compare(password,user.HashingPassword,(err,result)=>{
                 if(err){
                     let UA=user.Uns_attempt
@@ -303,7 +486,12 @@ module.exports.postLogin=(req,res)=>{
                     user.Uns_attempt=UA
                     if(UA==3){user.is_ban=true}
                     user.save()
-                    return res.status(401).json({msg:'Auth Failed!'})
+                    return res.status(401).json({
+                        msg:'Auth Failed!',
+                        error:err,
+                        success:false,
+                        status:401
+                    })
                 }
                 else if(result){
                     const token = jwt.sign({
@@ -315,10 +503,18 @@ module.exports.postLogin=(req,res)=>{
                         .then(result=>{
                             return res.status(200).json({
                                 msg:'login_Successful!',
-                                token:token
+                                token:token,
+                                error:[],
+                                success:true,
+                                status:200
                             })
                         })
-                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                        .catch(err=>{return res.status(403).json({
+                            msg:'Unsuccessful',
+                            error:err,
+                            success:false,
+                            status:403
+                        })})
                 }else{                    
                     let UA=user.Uns_attempt
                     UA=Number(UA)
@@ -326,11 +522,21 @@ module.exports.postLogin=(req,res)=>{
                     user.Uns_attempt=UA
                     if(UA==3){user.is_ban=true}
                     user.save()
-                    return res.status(401).json({msg:'Auth Failed!'})
+                    return res.status(401).json({
+                        msg:'Auth Failed!',
+                        error:err,
+                        success:false,
+                        status:401
+                    })
                 }
             })
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.loginForSites=(req,res)=>{//Done
@@ -348,18 +554,33 @@ module.exports.loginForSites=(req,res)=>{//Done
                     code=code+letters[rnd]
                 }
                 bcrypt.hash(code,12,(err,hash)=>{
-                    if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                    if(err){return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })}
                     else{
                         const link=`localhost.com/ActiveSite/${Address}/${code}`
                         user.Activator_code=hash
                         user.save()
                             .then(result=>{
-                                client.sendMessage(sender,user.Number ,`use this link to Activation Account:\n${link}`,GroupID)
+                                //client.sendMessage(sender,user.Number ,`use this link to Activation Account:\n${link}`,GroupID)
                             })
-                            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                            .catch(err=>{return res.status(403).json({
+                                msg:'Unsuccessful',
+                                error:err,
+                                success:false,
+                                status:403
+                            })})
                     }
                 })
-                return res.status(403).json({msg:'ban'})
+                return res.status(403).json({/*MOVAGHATI*/
+                    msg:'active your account',
+                    error:['account is ban'],
+                    success:false,
+                    status:403
+                })
             }
             bcrypt.compare(password,user.HashingPassWord,(err,result)=>{
                 if(err){
@@ -369,7 +590,12 @@ module.exports.loginForSites=(req,res)=>{//Done
                     user.Uns_attempt=UA
                     if(UA==3){user.is_ban=true}
                     user.save()
-                    return res.status(401).json({msg:'Auth Failed!'})
+                    return res.status(401).json({
+                        msg:'Auth Failed!',
+                        error:err,
+                        success:false,
+                        status:401
+                    })
                 }
                 else if(result){
                     const token = jwt.sign({
@@ -381,10 +607,18 @@ module.exports.loginForSites=(req,res)=>{//Done
                         .then(result=>{
                             return res.status(200).json({
                                 msg:'login_Successful!',
-                                token:token
+                                token:token,
+                                error:err,
+                                success:true,
+                                status:200
                             })
                         })
-                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                        .catch(err=>{return res.status(403).json({
+                            msg:'Unsuccessful',
+                            error:err,
+                            success:false,
+                            status:403
+                        })})
                 }else{                    
                     let UA=user.Uns_attempt
                     UA=Number(UA)
@@ -392,11 +626,21 @@ module.exports.loginForSites=(req,res)=>{//Done
                     user.Uns_attempt=UA
                     if(UA==3){user.is_ban=true}
                     user.save()
-                    return res.status(401).json({msg:'Auth Failed!'})
+                    return res.status(401).json({
+                        msg:'Auth Failed!',
+                        error:err,
+                        success:false,
+                        status:401
+                    })
                 }
             })
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.AddUserToSiteDb=(req,res)=>{//Done
@@ -413,7 +657,10 @@ module.exports.AddUserToSiteDb=(req,res)=>{//Done
                 if(users[i].username==username){
                     return res.status(403).json({
                         username:username,
-                        msg:'already_Added_from_before'
+                        msg:'already_Added_from_before',
+                        error:['repetitive user'],
+                        success:false,
+                        status:403
                     })
                 }
             }
@@ -421,7 +668,7 @@ module.exports.AddUserToSiteDb=(req,res)=>{//Done
             const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
             const rnd1=Math.floor(Math.random()*26)
             code=letters[rnd1]
-            for(let i=0;i<5;i++){
+            for(let i=0;i<6;i++){
                 const rnd=Math.floor(Math.random()*letters.length)
                 code=code+letters[rnd]
             }
@@ -437,12 +684,25 @@ module.exports.AddUserToSiteDb=(req,res)=>{//Done
                     res.status(200).json({
                         username:username,
                         msg:'user_Added',
-                        code:code
+                        code:code,
+                        error:[],
+                        success:true,
+                        status:200
                     })
                 )})
-                .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                .catch(err=>{return res.status(403).json({
+                    msg:'Unsuccessful',
+                    error:err,
+                    success:false,
+                    status:403
+                })})
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.AddSiteToDb=(req,res)=>{//Done
@@ -475,8 +735,18 @@ module.exports.AddSiteToDb=(req,res)=>{//Done
                                 getusers[k].registered=true
                                 site.users=getusers
                                 site.save()
-                                    .then(rs=>{return(res.status(200).json({msg:'Added'}))})
-                                    .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                                    .then(rs=>{return(res.status(200).json({
+                                        msg:'Added',
+                                        error:[],
+                                        success:true,
+                                        status:200
+                                    }))})
+                                    .catch(err=>{return res.status(403).json({
+                                        msg:'Unsuccessful',
+                                        error:err,
+                                        success:false,
+                                        status:403
+                                    })})
                             })
                     })
             }
@@ -489,15 +759,35 @@ module.exports.AddSiteToDb=(req,res)=>{//Done
                             if(getusers[i].usercode==code){
                                 AddToDb(i)
                                 return true
-                            }else{return res.status(403).json({msg:'wrong code'})}
-                        }else{return res.status(403).json({msg:'you are already added this site'})}
+                            }else{return res.status(403).json({
+                                msg:'wrong code',
+                                error:['wrong code'],
+                                success:false,
+                                status:403
+                            })}
+                        }else{return res.status(403).json({
+                            msg:'you are already added this site',
+                            error:['repetitive site'],
+                            success:false,
+                            status:403
+                        })}
                     }
                 }
-                return res.status(404).json({msg:'need_add_to_db_from_site'})
+                return res.status(404).json({
+                    msg:'need_add_to_db_from_site',
+                    error:['not in site database'],
+                    success:false,
+                    status:403
+                })
             }
             siteChecker()
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.getcode=(req,res)=>{//Done
@@ -519,7 +809,12 @@ module.exports.getcode=(req,res)=>{//Done
                     code=String(code)
                     bcrypt.hash(code,12,(err,hash)=>{
                         if(err){
-                            return res.status(403).json({msg:'Unsuccessful'})
+                            return res.status(403).json({
+                                msg:'Unsuccessful',
+                                error:err,
+                                success:false,
+                                status:403
+                            })
                         }else{
                             getsites[i].HashingCode=hash
                             let date=new Date()
@@ -533,18 +828,36 @@ module.exports.getcode=(req,res)=>{//Done
                                 .then(result=>{
                                     return (res.status(200).json({
                                         msg:'Done',
-                                        code:code
+                                        code:code,
+                                        error:[],
+                                        success:true,
+                                        status:200
                                     }))
                                 })
-                                .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                                .catch(err=>{return res.status(403).json({
+                                    msg:'Unsuccessful',
+                                    error:err,
+                                    success:false,
+                                    status:403
+                                })})
                         }
                     })
                     return true
                 }
             }
-            return res.status(404).json({msg:'Wrong_Address'})
+            return res.status(404).json({
+                msg:'Wrong_Address',
+                error:['Wrong Address'],
+                success:false,
+                status:404
+            })
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.confirm=(req,res)=>{//Done
@@ -567,14 +880,15 @@ module.exports.confirm=(req,res)=>{//Done
 
                             bcrypt.compare(code,hashcode,(err,result)=>{
                                 if(err){
-                                    return res.status(200).json({
+                                    return res.status(403).json({
                                         msg:'login auth',
                                         username:username,
                                         authentication:false,
-                                        value:'wrong code'
+                                        error:['wrong code'],
+                                        success:false,
+                                        status:403
                                     })
                                 }else if(result){
-
                                     let date=new Date()
                                     date =date.getTime()
                                     date=date/1000
@@ -588,32 +902,45 @@ module.exports.confirm=(req,res)=>{//Done
                                                     msg:'login auth',
                                                     username:username,
                                                     authentication:true,
-                                                    value:'auth completed'
+                                                    error:[],
+                                                    success:true,
+                                                    status:200
                                                 })
-                                                .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                                                .catch(err=>{return res.status(403).json({
+                                                    msg:'Unsuccessful',
+                                                    error:err,
+                                                    success:false,
+                                                    status:403
+                                                })})
                                             })                                            
                                         }else{
-                                            return res.status(200).json({
+                                            return res.status(403).json({
                                                 msg:'login auth',
                                                 username:username,
                                                 authentication:false,
-                                                value:'has been used before'
+                                                error:['already used before'],
+                                                success:false,
+                                                status:403
                                             })
                                         }
                                     }else{
-                                        return res.status(200).json({
+                                        return res.status(403).json({
                                             msg:'login auth',
                                             username:username,
                                             authentication:false,
-                                            value:'expire time error'
+                                            error:['expire time error'],
+                                            success:false,
+                                            status:403
                                         })
                                     }
                                 }else{
-                                    return res.status(200).json({
+                                    return res.status(403).json({
                                         msg:'login auth',
                                         username:username,
                                         authentication:false,
-                                        value:'wrong code'
+                                        error:['wrong code'],
+                                        success:false,
+                                        status:403
                                     })
                                 }
                             })
@@ -628,12 +955,22 @@ module.exports.confirm=(req,res)=>{//Done
                                     return true
                                 }
                             }
-                            return res.status(404).json({msg:'wrong Address'})
+                            return res.status(404).json({
+                                msg:'Unsuccessful',
+                                error:['wrong Address'],
+                                success:false,
+                                status:403
+                            })
                         }
                         
                         userchecker()
                     })
-                    .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})  
+                    .catch(err=>{return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })})  
             }
             
             const getusers=[...site.users]
@@ -644,9 +981,19 @@ module.exports.confirm=(req,res)=>{//Done
                     return true
                 }
             }
-            return res.status(404).json({msg:'wrong username'})
+            return res.status(404).json({
+                msg:'Unsuccessful',
+                error:['wrong username'],
+                success:false,
+                status:403
+            })
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.sendrecoveryemail=(req,res)=>{//Done
@@ -664,20 +1011,45 @@ module.exports.sendrecoveryemail=(req,res)=>{//Done
             }
             const link=`localhost:4000/recovery/users/${Number}/${code}`
             bcrypt.hash(code,12,(err,hash)=>{
-                if(err){return res.status(200).json({msg:'Unsuccessful2'})}
+                if(err){return res.status(403).json({
+                    msg:'Unsuccessful',
+                    error:err,
+                    success:false,
+                    status:403
+                })}
                 else{
                     user.recoverycode=hash
                     user.save()
                         .then(result=>{
                             client.sendMessage(sender,Number ,`use this link for Activation.\n${link}`,GroupID)
-                            .then((receipt) => {return res.status(200).json({msg:'link sent'})})
-                            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                            .then((receipt) => {return res.status(200).json({
+                                msg:'link sent',
+                                error:[],
+                                success:true,
+                                status:200
+                            })})
+                            .catch(err=>{return res.status(403).json({
+                                msg:'Unsuccessful',
+                                error:err,
+                                success:false,
+                                status:403
+                            })})
                         })
-                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful1'})})
+                        .catch(err=>{return res.status(403).json({
+                            msg:'Unsuccessful',
+                            error:err,
+                            success:false,
+                            status:403
+                        })})
                 }
             })
         })
-        .catch(err=>{return res.status(403).json({msg:'wrong Number'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.recovery=(req,res)=>{
@@ -690,23 +1062,53 @@ module.exports.recovery=(req,res)=>{
         User.findOne({Number:ID})
             .then(user=>{
                 bcrypt.compare(code,user.recoverycode,(err,result)=>{
-                    if(err){return res.status(403).json({msg:'Unsuccessful1'})}
+                    if(err){return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })}
                     else if(result){
-                        if(newPassword.length<8){return res.status(200).json({msg:'please choose longer password'})}
+                        if(newPassword.length<8){return res.status(403).json({
+                            msg:'please enter longer password',
+                            error:['too short password'],
+                            success:false,
+                            status:403,
+                        })}
                         const DeviceId=req.body.DeviceId
                         user.DeviceId=DeviceId
                         user.Uns_attempt=0
                         user.is_ban=false
                         bcrypt.hash(newPassword,12,(err,hash)=>{
-                            if(err){return res.status(403).json({msg:'Unsuccessful2'})}
+                            if(err){return res.status(403).json({
+                                msg:'Unsuccessful',
+                                error:err,
+                                success:false,
+                                status:403
+                            })}
                             else{user.HashingPassword=hash}
                         })
                         user.save()
-                            .then(rs=>{return res.status(200).json({msg:'changed'})})
-                            .catch(err=>{return res.status(403).json({msg:err})})
+                            .then(rs=>{return res.status(200).json({
+                                msg:'changed',
+                                error:[],
+                                success:true,
+                                status:200
+                            })})
+                            .catch(err=>{return res.status(403).json({
+                                msg:'Unsuccessful',
+                                error:err,
+                                success:false,
+                                status:403
+                            })})
                             
                     }
-                    else{return res.status(403).json({msg:'Unsuccessful4'})}
+                    else{return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:['wrong password'],
+                        success:false,
+                        status:403
+                    })}
                 })
                
             })
@@ -715,28 +1117,53 @@ module.exports.recovery=(req,res)=>{
         Sites.findOne({Address:ID})
             .then(site=>{
                 bcrypt.compare(code,site.recoverycode,(err,result)=>{
-                    if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                    if(err){return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })}
                     else if(result){
                         const newPassword=req.body.newPassword
                         site.Uns_attempt=0
                         site.is_ban=false
                         site.recoverycode='empty'
                         bcrypt.hash(newPassword,12,(err,hash)=>{
-                            if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                            if(err){return res.status(403).json({
+                                msg:'Unsuccessful',
+                                error:err,
+                                success:false,
+                                status:403
+                            })}
                             else{
                                 site.HashingPassWord=hash
                                 site.save()
                                 .then(rs=>{return res.status(200).json({msg:site.HashingPassWord,hash:hash})})
-                                .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                                .catch(err=>{return res.status(403).json({
+                                    msg:'Unsuccessful',
+                                    error:err,
+                                    success:false,
+                                    status:403
+                                })})
                             }
                         })
 
                     }
-                    else{return res.status(403).json({msg:'Unsuccessful'})}
+                    else{return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })}
                 })
             })
     }
-    else{return res.status(403).json({msg:'Unsuccessful'})}
+    else{return res.status(403).json({
+        msg:'Unsuccessful',
+        error:['wrong request'],
+        success:false,
+        status:403
+    })}
 }
 
 module.exports.sendrecoveryemailforsites=(req,res)=>{//Done
@@ -755,7 +1182,12 @@ module.exports.sendrecoveryemailforsites=(req,res)=>{//Done
             const link=`localhost:4000/recovery/sites/${Address}/${code}`
             bcrypt.hash(code,12,(err,hash)=>{
                 if(err){
-                    return res.status(403).json({msg:'Unsuccessful'})
+                    return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })
                 }else{
                     site.recoverycode=hash
                     site.save()
@@ -764,16 +1196,36 @@ module.exports.sendrecoveryemailforsites=(req,res)=>{//Done
                         .then(result=>{
                             client.sendMessage(sender,Number ,`use this link to Activation Account or choose new password:\n${link}`,GroupID)
                             .then((receipt) => {return res.status(200).json({msg:'link sent'})})
-                            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                            .catch(err=>{return res.status(403).json({
+                                msg:'Unsuccessful',
+                                error:err,
+                                success:false,
+                                status:403
+                            })})
                         })
-                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                        .catch(err=>{return res.status(403).json({
+                            msg:'Unsuccessful',
+                            error:err,
+                            success:false,
+                            status:403
+                        })})
                     })
-                    .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                    .catch(err=>{return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })})
                 }
             })
             return true
         })
-        .catch(err=>{return res.status(403).json({msg:'wrong Address'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'wrong Address',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.extention=(req,res)=>{//Done
@@ -813,20 +1265,33 @@ module.exports.extention=(req,res)=>{//Done
                     }
                 }
                 else if(mode==4){y++}
-                else{return res.status(403).json({msg:'Unsuccessful'})}
+                else{return res.status(403).json({
+                    msg:'Unsuccessful',
+                    error:['wrong request'],
+                    success:false,
+                    status:403
+                })}
                 site.ExpireDate.year=y
                 site.ExpireDate.month=m
                 site.ExpireDate.day=d
                 site.save()
                     .then(result=>{
                         return res.status(200).json({
-                            msg:'extentioned',
+                            msg:'done',
                             year:y,
                             month:m,
-                            day:d
+                            day:d,
+                            error:[],
+                            success:true,
+                            status:200
                         })
                     })
-                    .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                    .catch(err=>{return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })})
             }
             
             const pay=function(){
@@ -846,7 +1311,12 @@ module.exports.AddAllUsers=(req,res)=>{//Done
     
     Sites.findOne({Address:Address})
         .then(site=>{
-            if(site.AddedUsers==true){return res.status(403).json({msg:'already Added'})}
+            if(site.AddedUsers==true){return res.status(403).json({
+                msg:'already Added',
+                error:['already added users'],
+                success:false,
+                status:403
+            })}
             const getusers=[...site.users]
             for(let i=0;i<users.length;i++){
                 let code
@@ -867,10 +1337,25 @@ module.exports.AddAllUsers=(req,res)=>{//Done
             site.users=getusers
             site.AddedUsers=true
             site.save()
-                .then(result=>{return res.status(200).json({msg:'Added'})})
-                .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                .then(result=>{return res.status(200).json({
+                    msg:'Added',
+                    error:[],
+                    success:true,
+                    status:200
+                })})
+                .catch(err=>{return res.status(403).json({
+                    msg:'Unsuccessful',
+                    error:err,
+                    success:false,
+                    status:403
+                })})
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.getuserinfo=(req,res)=>{//Done
@@ -897,7 +1382,12 @@ module.exports.getuserinfo=(req,res)=>{//Done
                 sites:postsites
             })
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.getsiteinfo=(req,res)=>{//Done
@@ -923,11 +1413,19 @@ module.exports.getsiteinfo=(req,res)=>{//Done
                 Address:getAddress,
                 Number:Number,
                 ExpireDate:ExpireDate,
-                users:users
+                users:users,
+                error:[],
+                success:true,
+                status:200
             })
             
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.getusercode=(req,res)=>{//Done
@@ -943,19 +1441,37 @@ module.exports.getusercode=(req,res)=>{//Done
             for(let i=0;i<getuserinfo.length;i++){
                 if(getuserinfo[i].username==username){
                     if(getuserinfo[i].registered==true){
-                        return res.status(400).json({msg:'already_added'})
+                        return res.status(400).json({
+                            msg:'already_added',
+                            error:['user already added site'],
+                            success:false,
+                            status:403
+                        })
                     }else{
                         return res.status(200).json({
                             msg:'not_Added',
                             username:username,
-                            code:getuserinfo[i].usercode
+                            code:getuserinfo[i].usercode,
+                            error:[],
+                            success:true,
+                            status:200
                         })
                     }
                 }
             }
-            return res.status(404).json({msg:'user_not_founded'})
+            return res.status(404).json({
+                msg:'user_not_founded',
+                error:['wrong username'],
+                success:false,
+                status:404
+            })
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.DeleteAccount=(req,res)=>{
@@ -981,15 +1497,30 @@ module.exports.DeleteAccount=(req,res)=>{
                         site.users=getUsers
                         site.save()
                     })
-                    .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                    .catch(err=>{return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })})
             }
             User.findOneAndDelete({Number:Number}, function (err, rs) { 
                 if (err){console.log(err)} 
-                else{return res.status(200).json({msg:'User_Deleted'})} 
+                else{return res.status(200).json({
+                    msg:'User_Deleted',
+                    error:[],
+                    success:true,
+                    status:200
+                })} 
             });
             return 0
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.setEmail=(req,res)=>{
@@ -999,7 +1530,13 @@ module.exports.setEmail=(req,res)=>{
     
     const Email=req.body.Email
     
-    if(validateEmail(Email)==false){return res.status(403).json({msg:'Wrong_Email'})}
+    if(validateEmail(Email)==false){
+    return res.status(403).json({
+        msg:'Wrong_Email',
+        error:['wrong Email'],
+        success:false,
+        status:403
+    })}
     
     User.find({EmailAddress:Email})
         .then(user=>{
@@ -1017,19 +1554,39 @@ module.exports.setEmail=(req,res)=>{
                 user1.EmailAddress=Email            
                 bcrypt.hash(code,12,(err,hash)=>{
                     if(err){
-                        return res.status(200).json({msg:'Unsuccessful'})
+                        return res.status(200).json({
+                            msg:'Unsuccessful',
+                            error:err,
+                            success:false,
+                            status:403
+                        })
                     }else{
                         user1.Added_Email=false
                         user1.Email_Activator_code=hash
                         sendMail(Email,'Activator link for Email',link)
                         user1.save()
-                            .then(result=>{return res.status(200).json({msg:'Email_Added'})})
-                            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                            .then(result=>{return res.status(200).json({
+                                msg:'Email_Added',
+                                error:[],
+                                success:true,
+                                status:200
+                            })})
+                            .catch(err=>{return res.status(403).json({
+                                msg:'Unsuccessful',
+                                error:err,
+                                success:false,
+                                status:403
+                            })})
                     }
                 })
             })
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.ActiveEmail=(req,res)=>{
@@ -1039,17 +1596,42 @@ module.exports.ActiveEmail=(req,res)=>{
     User.findOne({Number:Number})
         .then(user=>{
             bcrypt.compare(code,user.Email_Activator_code,(err,result)=>{
-                if(err){return res.status(403).json({msg:'Wrong_link'})}
+                if(err){return res.status(403).json({
+                    msg:'Wrong_link',
+                    error:err,
+                    success:false,
+                    status:403
+                })}
                 else if(result){
                     user.Added_Email=true
                     user.save()
-                        .then(rs=>{return res.status(200).json({msg:'Email_is_Active'})})
-                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                        .then(rs=>{return res.status(200).json({
+                            msg:'Email_is_Active',
+                            error:[],
+                            success:true,
+                            status:200
+                        })})
+                        .catch(err=>{return res.status(403).json({
+                            msg:'Unsuccessful',
+                            error:err,
+                            success:false,
+                            status:403
+                        })})
                 }
-                else{return res.status(403).json({msg:'Wrong_link'})}
+                else{return res.status(403).json({
+                    msg:'Wrong_link',
+                    error:['wrong link'],
+                    success:false,
+                    status:403
+                })}
             })
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.SendDelLink=(req,res)=>{
@@ -1057,7 +1639,12 @@ module.exports.SendDelLink=(req,res)=>{
     
     User.findOne({EmailAddress:Email})
         .then(user=>{
-            if(user.Added_Email==false){return res.status(403).json({msg:'Email is not Active'})}
+            if(user.Added_Email==false){return res.status(403).json({
+                msg:'Email is not Active',
+                error:['Email is not Active'],
+                success:false,
+                status:403
+            })}
             const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
             const rnd1=Math.floor(Math.random()*26)
             let code=letters[rnd1]
@@ -1067,19 +1654,40 @@ module.exports.SendDelLink=(req,res)=>{
             }
             const link=`localhost:4000/DelByLink/${Email}/${code}`
             bcrypt.hash(code,12,(err,hash)=>{
-                if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                if(err){return res.status(403).json({
+                    msg:'Unsuccessful',
+                    error:err,
+                    success:false,
+                    status:403
+                })}
                 else{
                     user.Del_Acc_Link=hash
                     user.save()
                     .then(result=>{
-                        sendMail(Email,'Delete Account Link',link)
-                        return res.status(200).json({msg:'link sent',link:link})
+                        //sendMail(Email,'Delete Account Link',link)
+                        return res.status(200).json({
+                            msg:'link sent',
+                            link:link,
+                            error:[],
+                            success:true,
+                            status:200
+                        })
                     })
-                    .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                    .catch(err=>{return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })})
                 }
             })
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.DelByLink=(req,res)=>{
@@ -1090,9 +1698,19 @@ module.exports.DelByLink=(req,res)=>{
         .then(user=>{
             bcrypt.compare(code,user.Del_Acc_Link,(err,result)=>{
                 if(err){
-                    return res.status(403).json({msg:'Unsuccessful'})
+                    return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })
                 }else if(result){
-                    if(user.Added_Email==false){return res.status(403).json({msg:'Email is not Active'})}
+                    if(user.Added_Email==false){return res.status(403).json({
+                        msg:'Email is not Active',
+                        error:['Email is not Active'],
+                        success:false,
+                        status:403
+                    })}
                     const AllSites=[...user.sites]
                     for(let i=0;i<AllSites.length;i++){
                         Sites.findOne({Address:AllSites[i].SiteAddress})
@@ -1109,20 +1727,40 @@ module.exports.DelByLink=(req,res)=>{
                                 site.users=getUsers
                                 site.save()
                             })
-                            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                            .catch(err=>{return res.status(403).json({
+                                msg:'Unsuccessful',
+                                error:err,
+                                success:false,
+                                status:403
+                            })})
                     }
                     User.findOneAndDelete({EmailAddress:Email}, function (err, rs) { 
                         if (err){console.log(err)} 
-                        else{return res.status(200).json({msg:'User_Deleted'})} 
+                        else{return res.status(200).json({
+                            msg:'User_Deleted',
+                            error:[],
+                            success:true,
+                            status:200
+                        })} 
                     });
                     return 0
                 }else{
-                    return res.status(403).json({msg:'Unsuccessful'})
+                    return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:['wrong code'],
+                        success:false,
+                        status:403
+                    })
                 }
             })
 
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.showQR=(req,res)=>{
@@ -1152,17 +1790,24 @@ module.exports.showQR=(req,res)=>{
                     return res.status(200).json({
                         msg:'Done',
                         Number:Number,
-                        code:code
+                        code:code,
+                        error:[],
+                        success:true,
+                        status:200
                     })
                 })
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.getQR=(req,res)=>{
     const Number=req.body.Number
     const code=req.body.code
-    
     const DI=req.body.DeviceId
     
     User.findOne({Number:Number})
@@ -1175,13 +1820,33 @@ module.exports.getQR=(req,res)=>{
                 if(date<=user.change_Device_Time){
                     user.DeviceId=DI
                     user.save()
-                        .then(result=>{return res.status(200).json({msg:'changed'})})
-                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                        .then(result=>{return res.status(200).json({
+                            msg:'changed',
+                            error:[],
+                            success:true,
+                            status:200
+                        })})
+                        .catch(err=>{return res.status(403).json({
+                            msg:'Unsuccessful',
+                            error:err,
+                            success:false,
+                            status:403
+                        })})
                 }
-                else{ return res.status(403).json({msg:'Unsuccessful'})}
+                else{ return res.status(403).json({
+                    msg:'Unsuccessful',
+                    error:['time out'],
+                    success:false,
+                    status:403
+                })}
             }
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.newNumber=(req,res)=>{
@@ -1202,23 +1867,45 @@ module.exports.newNumber=(req,res)=>{
             }
             const link=`localhost:4000/ChangeNumber/${Number}/${newNumber}/${code}`
             bcrypt.hash(code,12,(err,hash)=>{
-                if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                if(err){return res.status(403).json({
+                    msg:'Unsuccessful',
+                    error:err,
+                    success:false,
+                    status:403
+                })}
                 else{
                     user.change_Number_code=hash
                     user.save(result=>{
                         //send SMS
                         user.save()
                         .then(result=>{
-                            client.sendMessage(sender,Number ,`use this link to change Number:\n${link}`,GroupID)
-                            .then((receipt) => {return res.status(200).json({msg:'link sent'})})
-                            .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                            // client.sendMessage(sender,Number ,`use this link to change Number:\n${link}`,GroupID)
+                            // .then((receipt) => {return res.status(200).json({msg:'link sent'})})
+                            // .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                            return res.status(200).json({
+                                msg:'link sent',
+                                error:[],
+                                link:link,
+                                success:true,
+                                status:200
+                            })
                         })
-                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                        .catch(err=>{return res.status(403).json({
+                            msg:'Unsuccessful',
+                            error:err,
+                            success:false,
+                            status:403
+                        })})
                     })
                 }
             })
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 
 module.exports.changeNumber=(req,res)=>{
@@ -1228,19 +1915,49 @@ module.exports.changeNumber=(req,res)=>{
     
     User.findOne({Number:Number})
         .then(user=>{
-            if(user.change_Number_code=='empty'){return res.status(403).json({msg:'Unsuccessful'})}
+            if(user.change_Number_code=='empty'){return res.status(403).json({
+                msg:'Unsuccessful',
+                error:['enable change number link'],
+                success:false,
+                status:403
+            })}
             bcrypt.hash(code,user.change_Number_code,(err,result)=>{
-                if(err){return res.status(403).json({msg:'Unsuccessful'})}
+                if(err){return res.status(403).json({
+                    msg:'Unsuccessful',
+                    error:err,
+                    success:false,
+                    status:403
+                })}
                 else if(result){
                     user.Number=newNumber
                     user.change_Number_code='empty'
                     user.save()
-                        .then(rs=>{return res.status(200).json({msg:'Number changed'})})
-                        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                        .then(rs=>{return res.status(200).json({
+                            msg:'Number changed',
+                            error:[],
+                            success:true,
+                            status:200
+                        })})
+                        .catch(err=>{return res.status(403).json({
+                            msg:'Unsuccessful',
+                            error:err,
+                            success:false,
+                            status:403
+                        })})
                 }
-                else{return res.status(403).json({msg:'Unsuccessful'})}
+                else{return res.status(403).json({
+                    msg:'Unsuccessful',
+                    error:err,
+                    success:false,
+                    status:403
+                })}
             })
         })
-        .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+        .catch(err=>{return res.status(403).json({
+            msg:'Unsuccessful',
+            error:err,
+            success:false,
+            status:403
+        })})
 }
 

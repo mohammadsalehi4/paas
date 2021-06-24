@@ -2,10 +2,6 @@ const mongoose=require('mongoose')
 const Schema=mongoose.Schema
 
 const userSchema=new Schema({
-    fullName:{
-        required:true,
-        type:String
-    },
     Number:{
         required:true,
         type:String
