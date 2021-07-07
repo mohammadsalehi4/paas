@@ -38,10 +38,6 @@ const userSchema=new Schema({
         required:true,
         type:String
     },
-    Activator_code:{
-        required:true,
-        type:String
-    },
     change_Device_code:{
         required:true,
         type:String

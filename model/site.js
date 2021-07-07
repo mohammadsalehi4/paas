@@ -18,10 +18,6 @@ const siteSchema=new Schema({
         required:true,
         type:String
     },
-    Activator_code:{
-        required:true,
-        type:String
-    },
     is_ban:{
         required:true,
         type:Boolean
@@ -33,20 +29,6 @@ const siteSchema=new Schema({
     AddedUsers:{
         required:true,
         type:Boolean
-    },
-    ExpireDate:{
-        year:{
-            required:true,
-            type:Number
-        },
-        month:{
-            required:true,
-            type:Number
-        },
-        day:{
-            required:true,
-            type:Number
-        }
     },
     users:[{
         username:{
