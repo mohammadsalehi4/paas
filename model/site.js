@@ -26,10 +26,6 @@ const siteSchema=new Schema({
         required:true,
         type:Number
     },
-    AddedUsers:{
-        required:true,
-        type:Boolean
-    },
     users:[{
         username:{
             type:String

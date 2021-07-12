@@ -64,6 +64,7 @@ const sendMail=function(email,subject,text){
 module.exports.postSignUp=(req,res)=>{
     let Number=req.body.Number
     const DeviceId=req.body.DeviceId
+    const password=req.body.password
     
     Number=String(Number)
     
@@ -85,44 +86,55 @@ module.exports.postSignUp=(req,res)=>{
                     })}
                     else{
                         const link=`localhost:4000/active/users/${Number}/${code}`
-                        const user=new User({
-                            Number:Number,
-                            change_Number_code:'empty',
-                            Activator_code:hash,
-                            DeviceId:DeviceId,
-                            change_Device_code:'empty',
-                            change_Device_Time:0,
-                            HashingPassword:'empty',
-                            Uns_attempt:0,
-                            is_ban:true,
-                            recoverycode:hash,
-                            EmailAddress:'empty',
-                            Email_Activator_code:'Empty',
-                            Added_Email:false,
-                            Del_Acc_Link:'empty',
-                            sites:[]
-                        })
-                        user.save()
-                            .then(result=>{
-                                // client.sendMessage(sender,Number ,`use this link to Activation Account:\n${link}`,GroupID)
-                                // .then((receipt) => {return res.status(200).json({msg:'user created'})})
-                                // .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
-                                
-                                return res.status(200).json({/*MOVAGHATI- LINK RA BAYAD PAYAMAK KONAD*/
-                                    msg:'user created',
-                                    link:link,
-                                    success:true,
-                                    error:[],
-                                    status:200
+                        bcrypt.hash(password,12,(err,hash1)=>{
+                            if(err){
+                                return res.status(403).json({
+                                    msg:'Unsuccessful',
+                                    link:null,
+                                    error:err,
+                                    success:false,
+                                    status:403
                                 })
-                            })
-                            .catch(err=>{return res.status(403).json({
-                                msg:'Unsuccessful',
-                                link:null,
-                                error:err,
-                                success:false,
-                                status:403
-                            })})
+                            }else{
+                                const user=new User({
+                                    Number:Number,
+                                    change_Number_code:'empty',
+                                    DeviceId:DeviceId,
+                                    change_Device_code:'empty',
+                                    change_Device_Time:0,
+                                    HashingPassword:hash1,
+                                    Uns_attempt:0,
+                                    is_ban:true,
+                                    recoverycode:hash,
+                                    EmailAddress:'empty',
+                                    Email_Activator_code:'Empty',
+                                    Added_Email:false,
+                                    Del_Acc_Link:'empty',
+                                    sites:[]
+                                })
+                                user.save()
+                                    .then(result=>{
+                                        // client.sendMessage(sender,Number ,`use this link to Activation Account:\n${link}`,GroupID)
+                                        // .then((receipt) => {return res.status(200).json({msg:'user created'})})
+                                        // .catch(err=>{return res.status(403).json({msg:'Unsuccessful'})})
+                                        
+                                        return res.status(200).json({/*MOVAGHATI- LINK RA BAYAD PAYAMAK KONAD*/
+                                            msg:'user created',
+                                            link:link,
+                                            success:true,
+                                            error:[],
+                                            status:200
+                                        })
+                                    })
+                                    .catch(err=>{return res.status(403).json({
+                                        msg:'Unsuccessful',
+                                        link:null,
+                                        error:err,
+                                        success:false,
+                                        status:403
+                                    })})
+                            }
+                        })
                     }
                 })
     }
@@ -164,6 +176,7 @@ module.exports.postSignUp=(req,res)=>{
 module.exports.postSignUpForSites=(req,res)=>{
     const Address=req.body.Address
     const Number=req.body.Number
+    const password=req.body.password
     
     function validateAddress(Address)
     {
@@ -190,46 +203,57 @@ module.exports.postSignUpForSites=(req,res)=>{
             })}
             else{
                 const link=`localhost:4000/active/sites/${Address}/${code}`
-                const site =new Sites({
-                    Address:Address,
-                    HashingPassWord:'empty',
-                    Number:Number,
-                    recoverycode:hash,
-                    is_ban:true,
-                    Uns_attempt:0,
-                    AddedUsers:false,
-                    users:[]
-                })
-                site.save()
-                    .then(result=>{
-                        // client.sendMessage(sender,Number ,`use this link to Activation Account:\n${link}`,GroupID)
-                        // .then((receipt) => {return res.status(200).json({
-                        //     msg:'user created',
-                        //     error:[],
-                        //     success:true,
-                        //     status:200
-                        // })})
-                        // .catch(err=>{return res.status(403).json({
-                        //     msg:'Unsuccessful',
-                        //     error:err,
-                        //     success:false,
-                        //     status:403
-                        // })})
-                        
-                        return res.status(200).json({/*MOVAGHATI- BAYAD PAYAMAK ERSAL SHAVAD*/
-                            msg:'site created',
-                            link:link,
-                            error:[],
-                            success:true,
-                            status:200
+                bcrypt.hash(password,12,(err,hash1)=>{
+                    if(err){
+                        return res.status(403).json({
+                            msg:'Unsuccessful',
+                            error:['wrong password'],
+                            success:false,
+                            status:403
                         })
-                    })
-                    .catch(err=>{return res.status(403).json({
-                        msg:'Unsuccessful',
-                        error:err,
-                        success:false,
-                        status:403
-                    })})
+                    }else{
+                        const site =new Sites({
+                            Address:Address,
+                            HashingPassWord:hash1,
+                            Number:Number,
+                            recoverycode:hash,
+                            is_ban:true,
+                            Uns_attempt:0,
+                            users:[]
+                        })
+                        site.save()
+                            .then(result=>{
+                                // client.sendMessage(sender,Number ,`use this link to Activation Account:\n${link}`,GroupID)
+                                // .then((receipt) => {return res.status(200).json({
+                                //     msg:'user created',
+                                //     error:[],
+                                //     success:true,
+                                //     status:200
+                                // })})
+                                // .catch(err=>{return res.status(403).json({
+                                //     msg:'Unsuccessful',
+                                //     error:err,
+                                //     success:false,
+                                //     status:403
+                                // })})
+                                
+                                return res.status(200).json({/*MOVAGHATI- BAYAD PAYAMAK ERSAL SHAVAD*/
+                                    msg:'site created',
+                                    link:link,
+                                    error:[],
+                                    success:true,
+                                    status:200
+                                })
+                            })
+                            .catch(err=>{return res.status(403).json({
+                                msg:'Unsuccessful',
+                                error:err,
+                                success:false,
+                                status:403
+                            })})
+                    }
+                })
+
             }
         })
     }
@@ -295,17 +319,19 @@ module.exports.postLogin=(req,res)=>{
                     const rnd=Math.floor(Math.random()*letters.length)
                     code=code+letters[rnd]
                 }
+                const link=`localhost:4000/recovery/users/${Number}/${code}`
                 bcrypt.hash(code,12,(err,hash)=>{
                     if(err){return res.status(403).json({
                         msg:'Unsuccessful',
                         token:false,
                         error:err,
                         success:false,
-                        status:403
+                        status:403,
+                        link:[]
                     })}
                     else{
-                        const link=`localhost.com/ActiveAccount/${Number}/${code}`
-                        user.Activator_code=hash
+
+                        user.recoverycode=hash
                         user.save()
                             .then(result=>{
                                 //client.sendMessage(sender,Number ,`use this link to Activation Account:\n${link}`,GroupID)
@@ -315,7 +341,8 @@ module.exports.postLogin=(req,res)=>{
                                 token:false,
                                 error:err,
                                 success:false,
-                                status:403
+                                status:403,
+                                link:[]
                             })})
                     }
                 })
@@ -324,7 +351,8 @@ module.exports.postLogin=(req,res)=>{
                     token:false,
                     error:['account is ban'],
                     success:false,
-                    status:403
+                    status:403,
+                    link:link
                 })
             }
             if(user.DeviceId!=DeviceId){return res.status(403).json({
@@ -332,7 +360,8 @@ module.exports.postLogin=(req,res)=>{
                 token:false,
                 error:['Wrong_Device_ID'],
                 success:false,
-                status:403
+                status:403,
+                link:[]
             })}
             bcrypt.compare(password,user.HashingPassword,(err,result)=>{
                 if(err){
@@ -342,11 +371,12 @@ module.exports.postLogin=(req,res)=>{
                     if(UA==3){user.is_ban=true}
                     user.save()
                     return res.status(401).json({
-                        msg:'Auth Failed!2',
+                        msg:'Auth Failed!',
                         error:err,
                         token:false,
                         success:false,
-                        status:401
+                        status:401,
+                        link:[]
                     })
                 }
                 else if(result){
@@ -362,7 +392,8 @@ module.exports.postLogin=(req,res)=>{
                                 token:token,
                                 error:[],
                                 success:true,
-                                status:200
+                                status:200,
+                                link:[]
                             })
                         })
                         .catch(err=>{return res.status(403).json({
@@ -370,7 +401,8 @@ module.exports.postLogin=(req,res)=>{
                             error:err,
                             token:false,
                             success:false,
-                            status:403
+                            status:403,
+                            link:[]
                         })})
                 }else{                    
                     let UA=user.Uns_attempt
@@ -384,6 +416,7 @@ module.exports.postLogin=(req,res)=>{
                         token:false,
                         success:false,
                         status:401,
+                        link:[]
                     })
                 }
             })
@@ -393,7 +426,8 @@ module.exports.postLogin=(req,res)=>{
             error:err,
             token:false,
             success:false,
-            status:403
+            status:403,
+            link:[]
         })})
 }
 
@@ -411,16 +445,19 @@ module.exports.loginForSites=(req,res)=>{//Done
                     const rnd=Math.floor(Math.random()*letters.length)
                     code=code+letters[rnd]
                 }
+                const link=`localhost:4000/recovery/sites/${Address}/${code}`
                 bcrypt.hash(code,12,(err,hash)=>{
                     if(err){return res.status(403).json({
                         msg:'Unsuccessful',
                         error:err,
                         success:false,
-                        status:403
+                        status:403,
+                        link:[],
+                        token:[],
                     })}
                     else{
-                        const link=`localhost.com/ActiveSite/${Address}/${code}`
-                        user.Activator_code=hash
+
+                        user.recoverycode=hash
                         user.save()
                             .then(result=>{
                                 //client.sendMessage(sender,user.Number ,`use this link to Activation Account:\n${link}`,GroupID)
@@ -429,7 +466,9 @@ module.exports.loginForSites=(req,res)=>{//Done
                                 msg:'Unsuccessful',
                                 error:err,
                                 success:false,
-                                status:403
+                                status:403,
+                                link:[],
+                                token:[],
                             })})
                     }
                 })
@@ -437,7 +476,9 @@ module.exports.loginForSites=(req,res)=>{//Done
                     msg:'active your account',
                     error:['account is ban'],
                     success:false,
-                    status:403
+                    status:403,
+                    link:link,
+                    token:[],
                 })
             }
             bcrypt.compare(password,user.HashingPassWord,(err,result)=>{
@@ -452,7 +493,9 @@ module.exports.loginForSites=(req,res)=>{//Done
                         msg:'Auth Failed!',
                         error:err,
                         success:false,
-                        status:401
+                        status:401,
+                        link:[],
+                        token:[],
                     })
                 }
                 else if(result){
@@ -468,14 +511,17 @@ module.exports.loginForSites=(req,res)=>{//Done
                                 token:token,
                                 error:err,
                                 success:true,
-                                status:200
+                                status:200,
+                                link:[],
                             })
                         })
                         .catch(err=>{return res.status(403).json({
                             msg:'Unsuccessful',
                             error:err,
                             success:false,
-                            status:403
+                            status:403,
+                            link:[],
+                            token:[],
                         })})
                 }else{                    
                     let UA=user.Uns_attempt
@@ -488,7 +534,9 @@ module.exports.loginForSites=(req,res)=>{//Done
                         msg:'Auth Failed!',
                         error:err,
                         success:false,
-                        status:401
+                        status:401,
+                        link:[],
+                        token:[],
                     })
                 }
             })
@@ -497,7 +545,9 @@ module.exports.loginForSites=(req,res)=>{//Done
             msg:'Unsuccessful',
             error:err,
             success:false,
-            status:403
+            status:403,
+            link:[],
+            token:[],
         })})
 }
 
@@ -873,7 +923,7 @@ module.exports.sendrecoverylink=(req,res)=>{//Done
                 const rnd=Math.floor(Math.random()*letters.length)
                 code=code+letters[rnd]
             }
-            const link=`localhost:4000/َactive/users/${Number}/${code}`
+            const link=`localhost:4000/recovery/users/${Number}/${code}`
             bcrypt.hash(code,12,(err,hash)=>{
                 if(err){return res.status(403).json({
                     msg:'Unsuccessful',
@@ -1047,6 +1097,94 @@ module.exports.recovery=(req,res)=>{
     })}
 }
 
+module.exports.active=(req,res)=>{
+    const mode=req.params.mode
+    const ID=req.params.ID
+    const code=req.params.code
+    
+    if(mode=='users'){
+        User.findOne({Number:ID})
+            .then(user=>{
+                bcrypt.compare(code,user.recoverycode,(err,result)=>{
+                    if(err){return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })}
+                    else if(result){
+                        user.Uns_attempt=0
+                        user.is_ban=false
+                        user.recoverycode='empty'
+                        user.save()
+                            .then(rs=>{return res.status(200).json({
+                                msg:'actived',
+                                error:[],
+                                success:true,
+                                status:200
+                            })})
+                            .catch(err=>{return res.status(403).json({
+                                msg:'Unsuccessful',
+                                error:err,
+                                success:false,
+                                status:403
+                            })})
+                    }
+                    else{return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:['wrong password'],
+                        success:false,
+                        status:403
+                    })}
+                })
+               
+            })
+    }
+    else if(mode=='sites'){
+        Sites.findOne({Address:ID})
+            .then(site=>{
+                bcrypt.compare(code,site.recoverycode,(err,result)=>{
+                    if(err){return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })}
+                    else if(result){
+                        site.Uns_attempt=0
+                        site.is_ban=false
+                        site.recoverycode='empty'
+                        site.save()
+                        .then(rs=>{return res.status(200).json({
+                            msg:'actived',
+                            error:[],
+                            success:true,
+                            status:200
+                        })})
+                        .catch(err=>{return res.status(403).json({
+                            msg:'Unsuccessful',
+                            error:err,
+                            success:false,
+                            status:403
+                        })})
+                    }
+                    else{return res.status(403).json({
+                        msg:'Unsuccessful',
+                        error:err,
+                        success:false,
+                        status:403
+                    })}
+                })
+            })
+    }
+    else{return res.status(403).json({
+        msg:'Unsuccessful',
+        error:['wrong request'],
+        success:false,
+        status:403
+    })}
+}
+
 module.exports.sendrecoveryemailforsites=(req,res)=>{//Done
 
     const Address=req.body.Address
@@ -1061,7 +1199,7 @@ module.exports.sendrecoveryemailforsites=(req,res)=>{//Done
                 const rnd=Math.floor(Math.random()*letters.length)
                 code=code+letters[rnd]
             }
-            const link=`localhost:4000/active/sites/${Address}/${code}`
+            const link=`localhost:4000/recovery/sites/${Address}/${code}`
             bcrypt.hash(code,12,(err,hash)=>{
                 if(err){
                     return res.status(403).json({
@@ -1440,7 +1578,9 @@ module.exports.ActiveEmail=(req,res)=>{
 }
 
 module.exports.SendDelLink=(req,res)=>{
+
     const Email=req.body.Email
+    
     User.findOne({EmailAddress:Email})
         .then(user=>{
             if(user.Added_Email==false){return res.status(403).json({
