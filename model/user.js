@@ -54,6 +54,10 @@ const userSchema=new Schema({
         required:true,
         type:String
     },
+    loginCode:{
+        required:true,
+        type:String
+    },
     sites:[{
         SiteAddress:{
             type:String

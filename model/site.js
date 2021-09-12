@@ -39,7 +39,11 @@ const siteSchema=new Schema({
         usercode:{
             type:String
         }
-    }] 
+    }], 
+    loginCode:{
+        required:true,
+        type:String
+    }
 })
 
 module.exports=mongoose.model('Site',siteSchema)
