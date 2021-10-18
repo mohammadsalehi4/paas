@@ -25,7 +25,7 @@ router.post('/getdata',userController.getData);
 router.post('/siteLogin',userController.loginForSites);
 router.post('/AddUserToSiteDb',checkAuth,userController.AddUserToSiteDb);//ok
 router.post('/confirm',checkAuth,userController.confirm);//ok
-router.get('/sendrecoverylinkforsites',userController.sendrecoveryemailforsites);
+router.post('/sendrecoverylinkforsites',userController.sendrecoveryemailforsites);
 router.post('/Addprevioususers',checkAuth,userController.AddAllUsers);//ok
 router.get('/getusercode',checkAuth,userController.getusercode);//ok
 router.post('/sendDeleteLink',userController.SendDelLink)
