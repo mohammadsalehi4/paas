@@ -17,7 +17,7 @@ router.post('/getQR',userController.getQR)
 router.post('/newNumber',checkAuth,userController.newNumber)//ok
 router.get('/changeNumber/:Number/:newNumber/:code',userController.changeNumber)
 /////////////////////////////////////////////BOTH//////////////////////////////////////////////
-router.get('/recovery/:mode/:ID/:code',userController.recovery);
+router.post('/recovery/:mode/:ID/:code',userController.recovery);
 router.get('/active/:mode/:ID/:code',userController.active);
 /////////////////////////////////////////////SITES/////////////////////////////////////////////
 router.post('/siteregistration',userController.postSignUpForSites);

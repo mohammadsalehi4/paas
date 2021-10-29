@@ -173,6 +173,7 @@ module.exports.postSignUp=(req,res)=>{
                                     Email_Activator_code:'Empty',
                                     Added_Email:false,
                                     Del_Acc_Link:'empty',
+                                    loginCode:'empty',
                                     sites:[]
                                 })
                                 user.save()
@@ -1104,7 +1105,7 @@ module.exports.sendrecoverylink=(req,res)=>{//Done
                 const rnd=Math.floor(Math.random()*letters.length)
                 code=code+letters[rnd]
             }
-            const link=`localhost:4000/recovery/users/${Number}/${code}`
+            const link=`localhost:3000/changePassword/users/${Number}/${code}`
             bcrypt.hash(code,12,(err,hash)=>{
                 if(err){return res.status(200).json({
                     msg:'Unsuccessful',
@@ -1178,7 +1179,7 @@ module.exports.recovery=(req,res)=>{
         User.findOne({Number:ID})
             .then(user=>{
                 bcrypt.compare(code,user.recoverycode,(err,result)=>{
-                    if(err){return res.status(403).json({
+                    if(err){return res.status(200).json({
                         msg:'Unsuccessful',
                         error:err,
                         success:false,
@@ -1192,7 +1193,7 @@ module.exports.recovery=(req,res)=>{
                         //     status:403,
                         // })}
                         bcrypt.hash(newPassword,12,(err,hash)=>{
-                            if(err){return res.status(403).json({
+                            if(err){return res.status(200).json({
                                 msg:'Unsuccessful',
                                 error:err,
                                 success:false,
@@ -1200,8 +1201,8 @@ module.exports.recovery=(req,res)=>{
                             })}
                             else{
                                 user.HashingPassword=hash
-                                const DeviceId=req.body.DeviceId
-                                user.DeviceId=DeviceId/******************************************/
+                                //const DeviceId=req.body.DeviceId
+                                //user.DeviceId=DeviceId/******************************************/
                                 user.Uns_attempt=0
                                 user.is_ban=false
                                 user.recoverycode='empty'
@@ -1212,7 +1213,7 @@ module.exports.recovery=(req,res)=>{
                                         success:true,
                                         status:200
                                     })})
-                                    .catch(err=>{return res.status(403).json({
+                                    .catch(err=>{return res.status(200).json({
                                         msg:'Unsuccessful',
                                         error:err,
                                         success:false,
@@ -1221,7 +1222,7 @@ module.exports.recovery=(req,res)=>{
                             }
                         })
                     }
-                    else{return res.status(403).json({
+                    else{return res.status(200).json({
                         msg:'Unsuccessful',
                         error:['wrong password'],
                         success:false,
@@ -1235,7 +1236,7 @@ module.exports.recovery=(req,res)=>{
         Sites.findOne({Address:ID})
             .then(site=>{
                 bcrypt.compare(code,site.recoverycode,(err,result)=>{
-                    if(err){return res.status(403).json({
+                    if(err){return res.status(200).json({
                         msg:'Unsuccessful',
                         error:err,
                         success:false,
@@ -1246,7 +1247,7 @@ module.exports.recovery=(req,res)=>{
                         site.is_ban=false
                         site.recoverycode='empty'
                         bcrypt.hash(newPassword,12,(err,hash)=>{
-                            if(err){return res.status(403).json({
+                            if(err){return res.status(200).json({
                                 msg:'Unsuccessful',
                                 error:err,
                                 success:false,
@@ -1261,7 +1262,7 @@ module.exports.recovery=(req,res)=>{
                                     success:true,
                                     status:200
                                 })})
-                                .catch(err=>{return res.status(403).json({
+                                .catch(err=>{return res.status(200).json({
                                     msg:'Unsuccessful',
                                     error:err,
                                     success:false,
@@ -1271,7 +1272,7 @@ module.exports.recovery=(req,res)=>{
                         })
 
                     }
-                    else{return res.status(403).json({
+                    else{return res.status(200).json({
                         msg:'Unsuccessful',
                         error:err,
                         success:false,
@@ -1280,7 +1281,7 @@ module.exports.recovery=(req,res)=>{
                 })
             })
     }
-    else{return res.status(403).json({
+    else{return res.status(200).json({
         msg:'Unsuccessful',
         error:['wrong request'],
         success:false,
@@ -1390,7 +1391,7 @@ module.exports.sendrecoveryemailforsites=(req,res)=>{//Done
                 const rnd=Math.floor(Math.random()*letters.length)
                 code=code+letters[rnd]
             }
-            const link=`localhost:4000/recovery/sites/${Address}/${code}`
+            const link=`localhost:3000/changePassword/sites/${Address}/${code}`
             bcrypt.hash(code,12,(err,hash)=>{
                 if(err){
                     return res.status(403).json({
@@ -1946,14 +1947,14 @@ module.exports.DelByLink=(req,res)=>{
         .then(user=>{
             bcrypt.compare(code,user.Del_Acc_Link,(err,result)=>{
                 if(err){
-                    return res.status(403).json({
-                        msg:'Unsuccessful',
+                    return res.status(200).json({
+                        msg:'Unsuccessful1',
                         error:err,
                         success:false,
                         status:403
                     })
                 }else if(result){
-                    if(user.Added_Email==false){return res.status(403).json({
+                    if(user.Added_Email==false){return res.status(200).json({
                         msg:'Email is not Active',
                         error:['Email is not Active'],
                         success:false,
@@ -1981,8 +1982,8 @@ module.exports.DelByLink=(req,res)=>{
                                         site.save()
                                         .then(result=>{})
                                         .catch(err=>{
-                                            return res.status(403).json({
-                                                msg:'Unsuccessful',
+                                            return res.status(200).json({
+                                                msg:'Unsuccessful2',
                                                 error:err,
                                                 success:false,
                                                 status:403
@@ -1992,8 +1993,8 @@ module.exports.DelByLink=(req,res)=>{
                                 }
 
                             })
-                            .catch(err=>{return res.status(403).json({
-                                msg:'Unsuccessful',
+                            .catch(err=>{return res.status(200).json({
+                                msg:'Unsuccessful3',
                                 error:err,
                                 success:false,
                                 status:403
@@ -2010,8 +2011,8 @@ module.exports.DelByLink=(req,res)=>{
                     });
                     return 0
                 }else{
-                    return res.status(403).json({
-                        msg:'Unsuccessful',
+                    return res.status(200).json({
+                        msg:'Unsuccessful4',
                         error:['wrong code'],
                         success:false,
                         status:403
@@ -2020,8 +2021,8 @@ module.exports.DelByLink=(req,res)=>{
             })
 
         })
-        .catch(err=>{return res.status(403).json({
-            msg:'Unsuccessful',
+        .catch(err=>{return res.status(200).json({
+            msg:'Unsuccessful5',
             error:err,
             success:false,
             status:403
@@ -2192,7 +2193,7 @@ module.exports.newNumber=(req,res)=>{
                 const rnd=Math.floor(Math.random()*letters.length)
                 code=code+letters[rnd]
             }
-            const link=`localhost:4000/ChangeNumber/${Number}/${newNumber}/${code}`
+            const link=`localhost:3000/SetNumber/${Number}/${newNumber}/${code}`
             bcrypt.hash(code,12,(err,hash)=>{
                 if(err){return res.status(403).json({
                     msg:'Unsuccessful',
@@ -2240,16 +2241,27 @@ module.exports.changeNumber=(req,res)=>{
     const newNumber=req.params.newNumber
     const code=req.params.code
     
+    User.find({Number:newNumber})
+    .then(user=>{
+        if(user.length>=1){return res.status(200).json({
+            msg:'this Number is already exist',
+            error:['repetitive Number'],
+            success:false,
+            status:403
+        })}
+        AddToDB()
+    })
+    
     User.findOne({Number:Number})
         .then(user=>{
-            if(user.change_Number_code=='empty'){return res.status(403).json({
+            if(user.change_Number_code=='empty'){return res.status(200).json({
                 msg:'Unsuccessful',
                 error:['enable change number link'],
                 success:false,
                 status:403
             })}
             bcrypt.hash(code,user.change_Number_code,(err,result)=>{
-                if(err){return res.status(403).json({
+                if(err){return res.status(200).json({
                     msg:'Unsuccessful',
                     error:err,
                     success:false,
@@ -2265,14 +2277,14 @@ module.exports.changeNumber=(req,res)=>{
                             success:true,
                             status:200
                         })})
-                        .catch(err=>{return res.status(403).json({
+                        .catch(err=>{return res.status(200).json({
                             msg:'Unsuccessful',
                             error:err,
                             success:false,
                             status:403
                         })})
                 }
-                else{return res.status(403).json({
+                else{return res.status(200).json({
                     msg:'Unsuccessful',
                     error:err,
                     success:false,
@@ -2280,7 +2292,7 @@ module.exports.changeNumber=(req,res)=>{
                 })}
             })
         })
-        .catch(err=>{return res.status(403).json({
+        .catch(err=>{return res.status(200).json({
             msg:'Unsuccessful',
             error:err,
             success:false,
