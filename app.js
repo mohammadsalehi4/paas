@@ -19,3 +19,4 @@ app.listen(PORT, () => {
     .then(() => console.log("connected to database"))
     .catch((e) => console.error(`CANNOT CONNECT TO DATABASE ${e}`));
 });
+
