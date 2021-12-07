@@ -281,9 +281,10 @@ module.exports.postSignUpForSites=(req,res)=>{
                             HashingPassWord:hash1,
                             Number:Number,
                             recoverycode:hash,
-                            is_ban:true,
+                            is_ban:false,
                             Uns_attempt:0,
-                            users:[]
+                            users:[],
+                            loginCode:'empty',
                         })
                         site.save()
                             .then(result=>{

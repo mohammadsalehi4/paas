@@ -7,9 +7,9 @@ const userRoutes=require('./routes/routes')
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-const PORT = process.env.PORT || 4000; 
-//const MONGOSE_URL = process.env.DATABASE_URL;
-const MONGOSE_URL = process.env.MONGOSE_URL;
+const PORT = process.env.PORT || 3000; 
+const MONGOSE_URL = process.env.DATABASE_URL;
+//const MONGOSE_URL = process.env.MONGOSE_URL;
 console.log("url", MONGOSE_URL);
 app.use('/',userRoutes)
 app.listen(PORT, () => {
