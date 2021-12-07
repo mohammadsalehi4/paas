@@ -141,7 +141,7 @@ module.exports.postSignUp=(req,res)=>{
                 }
                 bcrypt.hash(code,12,(err,hash)=>{
                     if(err){return res.status(200).json({
-                        msg:'Unsuccessful',
+                        msg:'Unsuccessful1',
                         link:null,
                         error:err,
                         success:false,
@@ -152,7 +152,7 @@ module.exports.postSignUp=(req,res)=>{
                         bcrypt.hash(password,12,(err,hash1)=>{
                             if(err){
                                 return res.status(200).json({
-                                    msg:'Unsuccessful',
+                                    msg:'Unsuccessful2',
                                     link:null,
                                     error:err,
                                     success:false,
@@ -191,7 +191,7 @@ module.exports.postSignUp=(req,res)=>{
                                         })
                                     })
                                     .catch(err=>{return res.status(200).json({
-                                        msg:'Unsuccessful',
+                                        msg:'Unsuccessful3',
                                         link:null,
                                         error:err,
                                         success:false,
@@ -216,7 +216,7 @@ module.exports.postSignUp=(req,res)=>{
                 AddToDB()
             })
             .catch(err=>{return res.status(200).json({
-                msg:'Unsuccessful',
+                msg:'Unsuccessful4',
                 link:null,
                 error:err,
                 success:false,
