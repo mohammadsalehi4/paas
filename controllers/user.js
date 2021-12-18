@@ -977,7 +977,7 @@ module.exports.confirm=(req,res)=>{//Done
 
                             bcrypt.compare(code,hashcode,(err,result)=>{
                                 if(err){
-                                    return res.status(403).json({
+                                    return res.status(200).json({
                                         msg:'login auth',
                                         username:username,
                                         authentication:false,
@@ -1003,7 +1003,7 @@ module.exports.confirm=(req,res)=>{//Done
                                                     success:true,
                                                     status:200
                                                 })
-                                                .catch(err=>{return res.status(403).json({
+                                                .catch(err=>{return res.status(200).json({
                                                     msg:'Unsuccessful',
                                                     error:err,
                                                     success:false,
@@ -1011,7 +1011,7 @@ module.exports.confirm=(req,res)=>{//Done
                                                 })})
                                             })                                            
                                         }else{
-                                            return res.status(403).json({
+                                            return res.status(200).json({
                                                 msg:'login auth',
                                                 username:username,
                                                 authentication:false,
@@ -1021,7 +1021,7 @@ module.exports.confirm=(req,res)=>{//Done
                                             })
                                         }
                                     }else{
-                                        return res.status(403).json({
+                                        return res.status(200).json({
                                             msg:'login auth',
                                             username:username,
                                             authentication:false,
@@ -1031,7 +1031,7 @@ module.exports.confirm=(req,res)=>{//Done
                                         })
                                     }
                                 }else{
-                                    return res.status(403).json({
+                                    return res.status(200).json({
                                         msg:'login auth',
                                         username:username,
                                         authentication:false,
@@ -1052,7 +1052,7 @@ module.exports.confirm=(req,res)=>{//Done
                                     return true
                                 }
                             }
-                            return res.status(404).json({
+                            return res.status(200).json({
                                 msg:'Unsuccessful',
                                 error:['wrong Address'],
                                 success:false,
@@ -1078,14 +1078,14 @@ module.exports.confirm=(req,res)=>{//Done
                     return true
                 }
             }
-            return res.status(404).json({
+            return res.status(200).json({
                 msg:'Unsuccessful',
                 error:['wrong username'],
                 success:false,
                 status:403
             })
         })
-        .catch(err=>{return res.status(403).json({
+        .catch(err=>{return res.status(200).json({
             msg:'Unsuccessful',
             error:err,
             success:false,
@@ -1621,7 +1621,7 @@ module.exports.getusercode=(req,res)=>{//Done
             for(let i=0;i<getuserinfo.length;i++){
                 if(getuserinfo[i].username==username){
                     if(getuserinfo[i].registered==true){
-                        return res.status(400).json({
+                        return res.status(200).json({
                             msg:'already_added',
                             error:['user already added site'],
                             success:false,
@@ -1639,14 +1639,14 @@ module.exports.getusercode=(req,res)=>{//Done
                     }
                 }
             }
-            return res.status(404).json({
+            return res.status(200).json({
                 msg:'user_not_founded',
                 error:['wrong username'],
                 success:false,
                 status:404
             })
         })
-        .catch(err=>{return res.status(403).json({
+        .catch(err=>{return res.status(200).json({
             msg:'Unsuccessful',
             error:err,
             success:false,
