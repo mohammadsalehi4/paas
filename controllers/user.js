@@ -650,28 +650,6 @@ module.exports.AddUserToSiteDb=(req,res)=>{//Done
     const token=(req.headers.authorization.slice(7))
     const decoded =jwt.verify(token,'secret')
     const Address=decoded.Address
-    const loginCode=decoded.code
-    
-    Sites.findOne({Number:Number})
-    .then(site=>{
-        bcrypt.compare(loginCode,site.loginCode,(err,result)=>{
-            if(err){
-                return res.status(200).json({
-                    msg:'Unsuccessful',
-                    error:err,
-                    success:false,
-                    status:403
-                })
-            }else if(!result){
-                return res.status(200).json({
-                    msg:'Unsuccessful',
-                    error:[],
-                    success:false,
-                    status:403
-                })
-            }
-        })
-    })
     
     const username=req.body.username
     
@@ -680,7 +658,7 @@ module.exports.AddUserToSiteDb=(req,res)=>{//Done
             const users=[...site.users]
             for(let i=0;i<users.length;i++){
                 if(users[i].username==username){
-                    return res.status(403).json({
+                    return res.status(200).json({
                         username:username,
                         msg:'already_Added_from_before',
                         username:null,
@@ -717,7 +695,7 @@ module.exports.AddUserToSiteDb=(req,res)=>{//Done
                         status:200
                     })
                 )})
-                .catch(err=>{return res.status(403).json({
+                .catch(err=>{return res.status(200).json({
                     msg:'Unsuccessful',
                     username:null,
                     code:null,
@@ -726,7 +704,7 @@ module.exports.AddUserToSiteDb=(req,res)=>{//Done
                     status:403
                 })})
         })
-        .catch(err=>{return res.status(403).json({
+        .catch(err=>{return res.status(200).json({
             msg:'Unsuccessful',
             username:null,
             code:null,
@@ -740,8 +718,8 @@ module.exports.AddSiteToDb=(req,res)=>{//Done
     const token=(req.headers.authorization.slice(7))
     const decoded =jwt.verify(token,'secret')
     const Number=decoded.Number
-    const loginCode=decoded.code
-    
+
+    const loginCode=decoded.code    
     User.findOne({Number:Number})
     .then(user=>{
         bcrypt.compare(loginCode,user.loginCode,(err,result)=>{
@@ -847,8 +825,7 @@ module.exports.getcode=(req,res)=>{//Done
     const token=(req.headers.authorization.slice(7))
     const decoded =jwt.verify(token,'secret')
     const Number=decoded.Number
-    const loginCode=decoded.code
-    
+    const loginCode=decoded.code    
     User.findOne({Number:Number})
     .then(user=>{
         bcrypt.compare(loginCode,user.loginCode,(err,result)=>{
@@ -884,7 +861,7 @@ module.exports.getcode=(req,res)=>{//Done
                     code=String(code)
                     bcrypt.hash(code,12,(err,hash)=>{
                         if(err){
-                            return res.status(403).json({
+                            return res.status(200).json({
                                 msg:'Unsuccessful',
                                 error:err,
                                 success:false,
@@ -909,7 +886,7 @@ module.exports.getcode=(req,res)=>{//Done
                                         status:200
                                     }))
                                 })
-                                .catch(err=>{return res.status(403).json({
+                                .catch(err=>{return res.status(200).json({
                                     msg:'Unsuccessful',
                                     error:err,
                                     success:false,
@@ -920,14 +897,14 @@ module.exports.getcode=(req,res)=>{//Done
                     return true
                 }
             }
-            return res.status(404).json({
+            return res.status(200).json({
                 msg:'Wrong_Address',
                 error:['Wrong Address'],
                 success:false,
                 status:404
             })
         })
-        .catch(err=>{return res.status(403).json({
+        .catch(err=>{return res.status(200).json({
             msg:'Unsuccessful',
             error:err,
             success:false,
@@ -939,28 +916,9 @@ module.exports.confirm=(req,res)=>{//Done
     const token=(req.headers.authorization.slice(7))
     const decoded =jwt.verify(token,'secret')
     const Address=decoded.Address
-    const loginCode=decoded.code
+
     
-    Sites.findOne({Number:Number})
-    .then(site=>{
-        bcrypt.compare(loginCode,site.loginCode,(err,result)=>{
-            if(err){
-                return res.status(200).json({
-                    msg:'Unsuccessful',
-                    error:err,
-                    success:false,
-                    status:403
-                })
-            }else if(!result){
-                return res.status(200).json({
-                    msg:'Unsuccessful',
-                    error:[],
-                    success:false,
-                    status:403
-                })
-            }
-        })
-    })
+
     
     const username=req.body.username
     const code=req.body.code
@@ -1062,7 +1020,7 @@ module.exports.confirm=(req,res)=>{//Done
                         
                         userchecker()
                     })
-                    .catch(err=>{return res.status(403).json({
+                    .catch(err=>{return res.status(200).json({
                         msg:'Unsuccessful',
                         error:err,
                         success:false,
@@ -1299,7 +1257,7 @@ module.exports.active=(req,res)=>{
         User.findOne({Number:ID})
             .then(user=>{
                 bcrypt.compare(code,user.recoverycode,(err,result)=>{
-                    if(err){return res.status(403).json({
+                    if(err){return res.status(200).json({
                         msg:'Unsuccessful',
                         error:err,
                         success:false,
@@ -1316,14 +1274,14 @@ module.exports.active=(req,res)=>{
                                 success:true,
                                 status:200
                             })})
-                            .catch(err=>{return res.status(403).json({
+                            .catch(err=>{return res.status(200).json({
                                 msg:'Unsuccessful',
                                 error:err,
                                 success:false,
                                 status:403
                             })})
                     }
-                    else{return res.status(403).json({
+                    else{return res.status(200).json({
                         msg:'Unsuccessful',
                         error:['wrong password'],
                         success:false,
@@ -1337,7 +1295,7 @@ module.exports.active=(req,res)=>{
         Sites.findOne({Address:ID})
             .then(site=>{
                 bcrypt.compare(code,site.recoverycode,(err,result)=>{
-                    if(err){return res.status(403).json({
+                    if(err){return res.status(200).json({
                         msg:'Unsuccessful',
                         error:err,
                         success:false,
@@ -1361,7 +1319,7 @@ module.exports.active=(req,res)=>{
                             status:403
                         })})
                     }
-                    else{return res.status(403).json({
+                    else{return res.status(200).json({
                         msg:'Unsuccessful',
                         error:err,
                         success:false,
@@ -1370,7 +1328,7 @@ module.exports.active=(req,res)=>{
                 })
             })
     }
-    else{return res.status(403).json({
+    else{return res.status(200).json({
         msg:'Unsuccessful',
         error:['wrong request'],
         success:false,
@@ -1395,7 +1353,7 @@ module.exports.sendrecoveryemailforsites=(req,res)=>{//Done
             const link=`localhost:3000/changePassword/sites/${Address}/${code}`
             bcrypt.hash(code,12,(err,hash)=>{
                 if(err){
-                    return res.status(403).json({
+                    return res.status(200).json({
                         msg:'Unsuccessful',
                         link:null,
                         error:err,
@@ -1424,7 +1382,7 @@ module.exports.sendrecoveryemailforsites=(req,res)=>{//Done
                                 status:200
                             })
                         })
-                        .catch(err=>{return res.status(403).json({
+                        .catch(err=>{return res.status(200).json({
                             msg:'Unsuccessful',
                             link:null,
                             error:err,
@@ -1432,7 +1390,7 @@ module.exports.sendrecoveryemailforsites=(req,res)=>{//Done
                             status:403
                         })})
                     })
-                    .catch(err=>{return res.status(403).json({
+                    .catch(err=>{return res.status(200).json({
                         msg:'Unsuccessful',
                         link:null,
                         error:err,
@@ -1443,7 +1401,7 @@ module.exports.sendrecoveryemailforsites=(req,res)=>{//Done
             })
             return true
         })
-        .catch(err=>{return res.status(403).json({
+        .catch(err=>{return res.status(200).json({
             msg:'wrong Address',
             link:null,
             error:err,
@@ -1456,28 +1414,9 @@ module.exports.AddAllUsers=(req,res)=>{//Done
     const token=(req.headers.authorization.slice(7))
     const decoded =jwt.verify(token,'secret')
     const Address=decoded.Address
-    const loginCode=decoded.code
+
     
-    Sites.findOne({Number:Number})
-    .then(site=>{
-        bcrypt.compare(loginCode,site.loginCode,(err,result)=>{
-            if(err){
-                return res.status(200).json({
-                    msg:'Unsuccessful',
-                    error:err,
-                    success:false,
-                    status:403
-                })
-            }else if(!result){
-                return res.status(200).json({
-                    msg:'Unsuccessful',
-                    error:[],
-                    success:false,
-                    status:403
-                })
-            }
-        })
-    })
+
     
     const users=req.body.users
     
@@ -1518,14 +1457,14 @@ module.exports.AddAllUsers=(req,res)=>{//Done
                     success:true,
                     status:200
                 })})
-                .catch(err=>{return res.status(403).json({
+                .catch(err=>{return res.status(200).json({
                     msg:'Unsuccessful',
                     error:err,
                     success:false,
                     status:403
                 })})
         })
-        .catch(err=>{return res.status(403).json({
+        .catch(err=>{return res.status(200).json({
             msg:'Unsuccessful',
             error:err,
             success:false,
@@ -1537,8 +1476,8 @@ module.exports.getuserinfo=(req,res)=>{//Done
     const token=(req.headers.authorization.slice(7))
     const decoded =jwt.verify(token,'secret')
     const Number=decoded.Number
-    const loginCode=decoded.code
-    
+
+    const loginCode=decoded.code    
     User.findOne({Number:Number})
     .then(user=>{
         bcrypt.compare(loginCode,user.loginCode,(err,result)=>{
@@ -1590,28 +1529,9 @@ module.exports.getusercode=(req,res)=>{//Done
     const token=(req.headers.authorization.slice(7))
     const decoded =jwt.verify(token,'secret')
     const Address=decoded.Address
-    const loginCode=decoded.code
+
     
-    Sites.findOne({Number:Number})
-    .then(site=>{
-        bcrypt.compare(loginCode,site.loginCode,(err,result)=>{
-            if(err){
-                return res.status(200).json({
-                    msg:'Unsuccessful',
-                    error:err,
-                    success:false,
-                    status:403
-                })
-            }else if(!result){
-                return res.status(200).json({
-                    msg:'Unsuccessful',
-                    error:[],
-                    success:false,
-                    status:403
-                })
-            }
-        })
-    })
+
     
     const username=req.body.username
     
@@ -1658,8 +1578,8 @@ module.exports.DeleteAccount=(req,res)=>{
     const token=(req.headers.authorization.slice(7))
     const decoded =jwt.verify(token,'secret')
     const Number=decoded.Number
-    const loginCode=decoded.code
-    
+
+    const loginCode=decoded.code    
     User.findOne({Number:Number})
     .then(user=>{
         bcrypt.compare(loginCode,user.loginCode,(err,result)=>{
@@ -1725,7 +1645,7 @@ module.exports.DeleteAccount=(req,res)=>{
             });
             return 0
         })
-        .catch(err=>{return res.status(403).json({
+        .catch(err=>{return res.status(200).json({
             msg:'Unsuccessful',
             error:err,
             success:false,
@@ -1737,8 +1657,8 @@ module.exports.setEmail=(req,res)=>{
     const token=(req.headers.authorization.slice(7))
     const decoded =jwt.verify(token,'secret')
     const Number=decoded.Number
-    const loginCode=decoded.code
-    
+
+    const loginCode=decoded.code    
     User.findOne({Number:Number})
     .then(user=>{
         bcrypt.compare(loginCode,user.loginCode,(err,result)=>{
@@ -1841,7 +1761,7 @@ module.exports.ActiveEmail=(req,res)=>{
     User.findOne({Number:Number})
         .then(user=>{
             bcrypt.compare(code,user.Email_Activator_code,(err,result)=>{
-                if(err){return res.status(403).json({
+                if(err){return res.status(200).json({
                     msg:'Wrong_link',
                     error:err,
                     success:false,
@@ -1864,7 +1784,7 @@ module.exports.ActiveEmail=(req,res)=>{
                             status:403
                         })})
                 }
-                else{return res.status(403).json({
+                else{return res.status(200).json({
                     msg:'Wrong_link',
                     error:['wrong link'],
                     success:false,
@@ -1872,7 +1792,7 @@ module.exports.ActiveEmail=(req,res)=>{
                 })}
             })
         })
-        .catch(err=>{return res.status(403).json({
+        .catch(err=>{return res.status(200).json({
             msg:'Unsuccessful',
             error:err,
             success:false,
@@ -2034,8 +1954,8 @@ module.exports.showQR=(req,res)=>{
     const token=(req.headers.authorization.slice(7))
     const decoded =jwt.verify(token,'secret')
     const Number=decoded.Number
-    const loginCode=decoded.code
-    
+
+    const loginCode=decoded.code    
     User.findOne({Number:Number})
     .then(user=>{
         bcrypt.compare(loginCode,user.loginCode,(err,result)=>{
@@ -2086,7 +2006,7 @@ module.exports.showQR=(req,res)=>{
                     })
                 })
         })
-        .catch(err=>{return res.status(403).json({
+        .catch(err=>{return res.status(200).json({
             msg:'Unsuccessful',
             Number:[],
             code:[],
@@ -2117,14 +2037,14 @@ module.exports.getQR=(req,res)=>{
                             success:true,
                             status:200
                         })})
-                        .catch(err=>{return res.status(403).json({
+                        .catch(err=>{return res.status(200).json({
                             msg:'Unsuccessful',
                             error:err,
                             success:false,
                             status:403
                         })})
                 }
-                else{ return res.status(403).json({
+                else{ return res.status(200).json({
                     msg:'Unsuccessful',
                     error:['time out'],
                     success:false,
@@ -2144,8 +2064,8 @@ module.exports.newNumber=(req,res)=>{
     const token=(req.headers.authorization.slice(7))
     const decoded =jwt.verify(token,'secret')
     const Number=decoded.Number
-    const loginCode=decoded.code
-    
+
+    const loginCode=decoded.code    
     User.findOne({Number:Number})
     .then(user=>{
         bcrypt.compare(loginCode,user.loginCode,(err,result)=>{
@@ -2196,7 +2116,7 @@ module.exports.newNumber=(req,res)=>{
             }
             const link=`localhost:3000/SetNumber/${Number}/${newNumber}/${code}`
             bcrypt.hash(code,12,(err,hash)=>{
-                if(err){return res.status(403).json({
+                if(err){return res.status(200).json({
                     msg:'Unsuccessful',
                     error:err,
                     success:false,
@@ -2305,28 +2225,9 @@ module.exports.getSiteToken=(req,res)=>{
     const token=(req.headers.authorization.slice(7))
     const decoded =jwt.verify(token,'secret')
     const Address=decoded.Address
-    const loginCode=decoded.code
+
     
-    Sites.findOne({Number:Number})
-    .then(site=>{
-        bcrypt.compare(loginCode,site.loginCode,(err,result)=>{
-            if(err){
-                return res.status(200).json({
-                    msg:'Unsuccessful',
-                    error:err,
-                    success:false,
-                    status:403
-                })
-            }else if(!result){
-                return res.status(200).json({
-                    msg:'Unsuccessful',
-                    error:[],
-                    success:false,
-                    status:403
-                })
-            }
-        })
-    })
+
     
     Sites.findOne({Address:Address})
     .then(site=>{
