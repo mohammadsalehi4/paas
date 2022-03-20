@@ -58,6 +58,20 @@ const userSchema=new Schema({
         required:true,
         type:String
     },
+    AutoLogin:{
+        loginCode:{
+            required:true,
+            type:String
+        },
+        Address:{
+            required:true,
+            type:String
+        },
+        ExpTime:{
+            required:true,
+            type:Number
+        }
+    },
     sites:[{
         SiteAddress:{
             type:String

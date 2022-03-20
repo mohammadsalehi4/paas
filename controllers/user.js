@@ -174,6 +174,11 @@ module.exports.postSignUp=(req,res)=>{
                                     Added_Email:false,
                                     Del_Acc_Link:'empty',
                                     loginCode:'empty',
+                                    AutoLogin:{
+                                        loginCode:'empty',
+                                        Address:'empty',
+                                        ExpTime:0
+                                    },
                                     sites:[]
                                 })
                                 user.save()
@@ -2282,5 +2287,90 @@ module.exports.getSiteToken=(req,res)=>{
             token:[],
             error:err
         })
+    })
+}
+
+module.exports.AutoLogin=(req,res)=>{
+    const token=(req.body.token.slice(7))
+    const decoded =jwt.verify(token,'secret')
+    const Number=decoded.Number
+    const address=req.body.address
+
+    User.findOne({Number:Number})
+    .then(user=>{
+        const sites=[...user.sites]
+        for(let i=0;i<sites.length;i++){
+            if(sites[i].SiteAddress===address){
+
+                const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
+                const rnd1=Math.floor(Math.random()*26)
+                let code=letters[rnd1]
+                for(let i=0;i<59;i++){
+                    const rnd=Math.floor(Math.random()*letters.length)
+                    code=code+letters[rnd]
+                }
+
+                let date=new Date()
+                date =date.getTime()
+                date=date/1000
+                date=Math.floor(date)
+
+                user.AutoLogin.loginCode=code
+                user.AutoLogin.Address=address
+                user.AutoLogin.ExpTime=date+60
+                user.save()
+                .then(resp=>{
+                    return res.status(200).json({
+                        success:true,
+                        loginCode:user.AutoLogin.loginCode,
+                        username:sites[i].username
+                    })
+                })
+                .catch(err=>{
+                    return res.status(200).json({
+                        success:false,
+                        loginCode:err
+                    })
+                })
+                return
+            }
+        }
+    })
+}
+
+module.exports.AutoLoginAuth=(req,res)=>{
+    const username=req.body.username
+    const code=req.body.code
+
+    const token=(req.headers.authorization.slice(7))
+    const decoded =jwt.verify(token,'secret')
+    const Address=decoded.Address
+
+    Sites.findOne({Address:Address})
+    .then(site=>{
+        const siteUsers=[...site.users]
+        for(let i=0;i<siteUsers.length;i++){
+            if(siteUsers[i].username===username){
+                const userNumber=siteUsers[i].userid
+                User.findOne({Number:userNumber})
+                .then(user=>{
+                    if(user.AutoLogin.loginCode===code){
+                        if(user.AutoLogin.Address===Address){//zaman check shavad
+                            return res.status(200).json({
+                                success:true
+                            })
+                        }else{
+                            return res.status(200).json({
+                                success:false
+                            })
+                        }
+                    }else{
+                        return res.status(200).json({
+                            success:false
+                        })
+                    }
+                })
+            }
+        }
     })
 }
