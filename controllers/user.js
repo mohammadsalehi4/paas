@@ -2323,7 +2323,8 @@ module.exports.AutoLogin=(req,res)=>{
                     return res.status(200).json({
                         success:true,
                         loginCode:user.AutoLogin.loginCode,
-                        username:sites[i].username
+                        username:sites[i].username,
+                        Number:Number
                     })
                 })
                 .catch(err=>{
