@@ -16,6 +16,7 @@ router.get('/showQR',checkAuth,userController.showQR)//ok
 router.post('/getQR',userController.getQR)
 router.post('/newNumber',checkAuth,userController.newNumber)//ok
 router.post('/autologin',userController.AutoLogin)//ok
+router.post('/deletesite',checkAuth,userController.DeleteSiteFromAccount)//ok
 router.get('/changeNumber/:Number/:newNumber/:code',userController.changeNumber)
 /////////////////////////////////////////////BOTH//////////////////////////////////////////////
 router.post('/recovery/:mode/:ID/:code',userController.recovery);

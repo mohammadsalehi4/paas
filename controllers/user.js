@@ -2231,9 +2231,6 @@ module.exports.getSiteToken=(req,res)=>{
     const decoded =jwt.verify(token,'secret')
     const Address=decoded.Address
 
-    
-
-    
     Sites.findOne({Address:Address})
     .then(site=>{
         const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
@@ -2373,5 +2370,72 @@ module.exports.AutoLoginAuth=(req,res)=>{
                 })
             }
         }
+    })
+}
+
+module.exports.DeleteSiteFromAccount=(req,res)=>{
+    const token=(req.headers.authorization.slice(7))
+    const decoded =jwt.verify(token,'secret')
+    const Number=decoded.Number
+    const address=req.body.address
+
+    Sites.findOne({Address:address})
+    .then(site=>{
+        const getUsers=[...site.users]
+        for(let j=0;j<getUsers.length;j++){
+            if(getUsers[j].userid==Number){
+                let code
+                const letters=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']
+                const rnd1=Math.floor(Math.random()*26)
+                code=letters[rnd1]
+                for(let i=0;i<5;i++){
+                    const rnd=Math.floor(Math.random()*letters.length)
+                    code=code+letters[rnd]
+                }
+                getUsers[j].usercode=code
+                getUsers[j].registered=false
+                getUsers[j].userid=null
+                j=getUsers.length
+            }
+        }
+        site.users=getUsers
+        site.save()
+        .then(result=>{
+            User.findOne({Number:Number})
+            .then(user=>{
+                const getSites=[...user.sites]
+                for(let i=0;i<getSites.length;i++){
+                    if(getSites[i].SiteAddress===address){
+                        getSites.splice(i,1)
+                    }
+                }
+                user.sites=getSites
+                user.save()
+                .then(resp=>{
+                    return res.status(200).json({
+                        msg:'done',
+                        success:true
+                    })
+                })
+                .catch(err=>{
+                    return res.status(200).json({
+                        success:false,
+                        err:err
+                    })
+                })
+            })
+            .catch(err=>{
+                return res.status(200).json({
+                    success:false,
+                    err:err
+                })
+            })
+        })
+        .catch(err=>{
+            return res.status(200).json({
+                success:false,
+                err:err
+            })
+        })
     })
 }
