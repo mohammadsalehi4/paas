@@ -921,9 +921,6 @@ module.exports.confirm=(req,res)=>{//Done
     const token=(req.headers.authorization.slice(7))
     const decoded =jwt.verify(token,'secret')
     const Address=decoded.Address
-
-    
-
     
     const username=req.body.username
     const code=req.body.code
