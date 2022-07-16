@@ -725,6 +725,11 @@ module.exports.AddSiteToDb=(req,res)=>{//Done
     const Number=decoded.Number
 
     const loginCode=decoded.code    
+
+    const Address=req.body.Address
+    const username=req.body.username
+    const code=req.body.code
+
     User.findOne({Number:Number})
     .then(user=>{
         bcrypt.compare(loginCode,user.loginCode,(err,result)=>{
@@ -744,13 +749,18 @@ module.exports.AddSiteToDb=(req,res)=>{//Done
                 })
             }
         })
-    })
-    
-    const Address=req.body.Address
-    const username=req.body.username
-    const code=req.body.code
-    
-    Sites.findOne({Address:Address})
+        const getedsites=[...user.sites]
+        for(let i=0;i<getedsites.length;i++){
+            if(getedsites[i].SiteAddress===Address){
+                return res.status(200).json({
+                    msg:'Unsuccessful',
+                    error:[],
+                    success:false,
+                    status:403
+                })
+            }
+        }
+        Sites.findOne({Address:Address})
         .then(site=>{
             const AddToDb=function(k){
                 User.findOne({Number:Number})
@@ -779,7 +789,7 @@ module.exports.AddSiteToDb=(req,res)=>{//Done
                                     }))})
                                     .catch(err=>{return res.status(200).json({
                                         msg:'Unsuccessful',
-                                        error:err,
+                                        error:['err'],
                                         success:false,
                                         status:403
                                     })})
@@ -824,6 +834,7 @@ module.exports.AddSiteToDb=(req,res)=>{//Done
             success:false,
             status:403
         })})
+    })
 }
 
 module.exports.getcode=(req,res)=>{//Done
@@ -967,7 +978,9 @@ module.exports.confirm=(req,res)=>{//Done
                                                     msg:'Unsuccessful',
                                                     error:err,
                                                     success:false,
-                                                    status:403
+                                                    status:403,
+                                                    username:'',
+                                                    authentication:false,
                                                 })})
                                             })                                            
                                         }else{
